@@ -22,29 +22,10 @@
             background-color: #ffffff;
             transition: all 0.2s;
         }
-        .form-input:focus {
-            outline: none;
-            border-color: #b91c1c;
-            box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1);
-        }
-        
-        .tab-btn {
-            padding: 0.75rem 1.5rem;
-            font-weight: 600;
-            color: #64748b;
-            border-bottom: 2px solid transparent;
-            transition: all 0.2s;
-        }
-        .tab-btn.active {
-            color: #b91c1c;
-            border-bottom: 2px solid #b91c1c;
-        }
-        .tab-btn:hover:not(.active) {
-            color: #334155;
-            border-bottom: 2px solid #cbd5e1;
-        }
-
-        .student-list { max-height: 150px; overflow-y: auto; }
+        .form-input:focus { outline: none; border-color: #b91c1c; box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1); }
+        .tab-btn { padding: 0.75rem 1.5rem; font-weight: 600; color: #64748b; border-bottom: 2px solid transparent; transition: all 0.2s; }
+        .tab-btn.active { color: #b91c1c; border-bottom: 2px solid #b91c1c; }
+        .student-list { max-height: 180px; overflow-y: auto; background: #fff; border: 1px solid #cbd5e1; padding: 0.5rem; border-radius: 0.5rem; }
     </style>
 </head>
 <body class="text-slate-800 antialiased">
@@ -54,9 +35,7 @@
             <div class="w-full md:w-1/2 bg-red-800 p-10 text-white flex flex-col justify-center relative">
                 <div class="relative z-10">
                     <h2 class="text-3xl font-bold mb-4">SVA Incident Portal</h2>
-                    <p class="text-red-100 mb-6 leading-relaxed">
-                        Secure reporting and tracking for student incidents, behavior, and interventions.
-                    </p>
+                    <p class="text-red-100 mb-6 leading-relaxed">Secure reporting and tracking for student incidents, behavior, and interventions.</p>
                 </div>
             </div>
             <div class="w-full md:w-1/2 p-10 flex flex-col justify-center items-center text-center">
@@ -116,17 +95,19 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold mb-1">Location</label>
-                            <input type="text" id="incLocation" required placeholder="e.g., Cafeteria, Room 12" class="form-input">
+                            <input type="text" id="incLocation" required placeholder="e.g., Cafeteria" class="form-input">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
                         <div class="border border-slate-200 p-4 rounded-lg bg-slate-50">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Primary Student(s) Involved</label>
+                            <input type="text" placeholder="Search primary students..." class="form-input text-sm mb-2" oninput="filterCheckboxes(this, 'primary-students-list')">
                             <div id="primary-students-list" class="student-list space-y-2 text-sm"></div>
                         </div>
                         <div class="border border-slate-200 p-4 rounded-lg bg-slate-50">
                             <label class="block text-sm font-bold text-slate-700 mb-2">Witness / Related Student(s)</label>
+                            <input type="text" placeholder="Search related students..." class="form-input text-sm mb-2" oninput="filterCheckboxes(this, 'related-students-list')">
                             <div id="related-students-list" class="student-list space-y-2 text-sm"></div>
                         </div>
                     </div>
@@ -161,7 +142,6 @@
         document.getElementById('view-login').classList.add('hidden');
         document.getElementById('view-app').classList.remove('hidden');
         document.getElementById('user-display').innerText = USER_EMAIL;
-        
         fetchData();
     }
 
@@ -172,10 +152,8 @@
     }
 
     function switchTab(tabName) {
-        document.getElementById('tab-btn-dashboard').classList.remove('active');
-        document.getElementById('tab-btn-report').classList.remove('active');
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
         document.getElementById(`tab-btn-${tabName}`).classList.add('active');
-        
         document.getElementById('tab-dashboard').classList.add('hidden');
         document.getElementById('tab-report').classList.add('hidden');
         document.getElementById(`tab-${tabName}`).classList.remove('hidden');
@@ -183,34 +161,34 @@
 
     function fetchData() {
         fetch(BACKEND_URL, {
-            method: 'POST',
-            body: JSON.stringify({ action: 'init', token: USER_TOKEN })
+            method: 'POST', body: JSON.stringify({ action: 'init', token: USER_TOKEN })
         })
         .then(res => res.json())
         .then(data => {
             if(data.status === 'success') {
-                USER_ROLE = data.role;
-                STUDENTS = data.students;
-                REPORTS = data.reports;
+                USER_ROLE = data.role; STUDENTS = data.students; REPORTS = data.reports;
                 document.getElementById('role-display').innerText = USER_ROLE;
-                populateStudents();
-                renderReports();
-            } else {
-                alert(data.message);
-                logout();
-            }
+                populateStudents(); renderReports();
+            } else { alert(data.message); logout(); }
         });
     }
 
     function populateStudents() {
-        let primaryHTML = '', relatedHTML = '';
+        let html = '';
         STUDENTS.forEach(s => {
-            const label = `<label class="flex items-center space-x-2"><input type="checkbox" value="${s.name} (${s.id})" class="form-checkbox text-red-600 rounded"><span>${s.name} - ${s.grade}</span></label>`;
-            primaryHTML += label;
-            relatedHTML += label;
+            html += `<label class="flex items-center space-x-2 py-1"><input type="checkbox" value="${s.name} (${s.id})" class="form-checkbox text-red-600 rounded"><span>${s.name} - ${s.grade}</span></label>`;
         });
-        document.getElementById('primary-students-list').innerHTML = primaryHTML || "No assigned students found.";
-        document.getElementById('related-students-list').innerHTML = relatedHTML || "No assigned students found.";
+        document.getElementById('primary-students-list').innerHTML = html || "No assigned students found.";
+        document.getElementById('related-students-list').innerHTML = html || "No assigned students found.";
+    }
+
+    function filterCheckboxes(inputElement, listId) {
+        const filter = inputElement.value.toLowerCase();
+        const labels = document.getElementById(listId).getElementsByTagName('label');
+        for (let i = 0; i < labels.length; i++) {
+            const text = labels[i].innerText.toLowerCase();
+            labels[i].style.display = text.includes(filter) ? "flex" : "none";
+        }
     }
 
     function renderReports() {
@@ -218,9 +196,7 @@
         const feed = document.getElementById('reports-feed');
         
         const filtered = REPORTS.filter(r => 
-            r.primary.toLowerCase().includes(query) || 
-            r.id.toLowerCase().includes(query) ||
-            r.type.toLowerCase().includes(query)
+            r.primary.toLowerCase().includes(query) || r.id.toLowerCase().includes(query) || r.type.toLowerCase().includes(query)
         );
 
         if (filtered.length === 0) {
@@ -231,28 +207,16 @@
         let html = '';
         filtered.forEach(r => {
             let statusColor = r.status === 'Pending Review' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800';
-            
-            // Admin Update UI
-            let adminControls = '';
-            if (USER_ROLE === 'admin') {
-                adminControls = `
+            let adminControls = USER_ROLE === 'admin' ? `
                 <div class="mt-4 pt-4 border-t border-slate-200 bg-slate-50 p-4 rounded-lg">
                     <h4 class="font-bold text-sm mb-2 text-slate-700">Admin Controls</h4>
-                    <select id="status-${r.id}" class="form-input text-sm mb-2">
-                        <option value="${r.status}" selected hidden>${r.status}</option>
-                        <option value="Pending Review">Pending Review</option>
-                        <option value="Reviewed">Reviewed</option>
-                        <option value="Contacted Parents">Contacted Parents</option>
-                        <option value="Met with Student">Met with Student</option>
-                        <option value="Resolved">Resolved</option>
-                    </select>
+                    <select id="status-${r.id}" class="form-input text-sm mb-2"><option value="${r.status}" selected hidden>${r.status}</option><option value="Pending Review">Pending Review</option><option value="Reviewed">Reviewed</option><option value="Contacted Parents">Contacted Parents</option><option value="Resolved">Resolved</option></select>
                     <textarea id="comments-${r.id}" class="form-input text-sm mb-2" rows="2" placeholder="Admin notes...">${r.comments}</textarea>
                     <button onclick="updateStatus('${r.id}')" class="bg-slate-800 text-white px-4 py-2 rounded text-sm hover:bg-slate-700">Save Update</button>
-                </div>`;
-            }
+                </div>` : '';
 
             html += `
-                <div id="report-card-${r.id}" class="bg-white rounded-xl shadow-md border border-slate-200 p-6 fade-in">
+                <div class="bg-white rounded-xl shadow-md border border-slate-200 p-6 fade-in">
                     <div class="flex justify-between items-start mb-4">
                         <div>
                             <h3 class="text-lg font-bold text-slate-800">${r.type} <span class="text-slate-400 text-sm font-normal">#${r.id}</span></h3>
@@ -260,26 +224,19 @@
                         </div>
                         <div class="flex items-center space-x-3">
                             <span class="${statusColor} text-xs font-bold px-3 py-1 rounded-full">${r.status}</span>
-                            <button onclick="downloadPDF('${r.id}')" class="text-blue-600 hover:text-blue-800 text-sm font-semibold underline">PDF</button>
+                            <button onclick="downloadFormalPDF('${r.id}')" class="bg-slate-800 text-white text-xs font-bold px-4 py-2 rounded shadow hover:bg-slate-700 transition">Download Official PDF</button>
                         </div>
                     </div>
                     
                     <div class="grid grid-cols-2 gap-4 text-sm mb-4">
-                        <div><strong>Incident Date:</strong> ${r.date}</div>
-                        <div><strong>Location:</strong> ${r.location}</div>
+                        <div><strong>Incident Date:</strong> ${r.date}</div><div><strong>Location:</strong> ${r.location}</div>
                         <div class="col-span-2"><strong>Primary Students:</strong> ${r.primary}</div>
                         <div class="col-span-2"><strong>Witness/Related:</strong> ${r.related || 'None'}</div>
                     </div>
 
-                    <div class="bg-slate-50 p-3 rounded text-sm text-slate-700 mb-2 border border-slate-100">
-                        <strong>Description:</strong><br>${r.description}
-                    </div>
-                    <div class="bg-slate-50 p-3 rounded text-sm text-slate-700 border border-slate-100 mb-2">
-                        <strong>Action Taken:</strong><br>${r.actionTaken}
-                    </div>
-                    
+                    <div class="bg-slate-50 p-3 rounded text-sm text-slate-700 mb-2 border border-slate-100"><strong>Description:</strong><br>${r.description}</div>
+                    <div class="bg-slate-50 p-3 rounded text-sm text-slate-700 border border-slate-100 mb-2"><strong>Action Taken:</strong><br>${r.actionTaken}</div>
                     ${r.comments ? `<div class="bg-red-50 p-3 rounded text-sm text-red-800 border border-red-100"><strong>Admin Note:</strong> ${r.comments}</div>` : ''}
-                    
                     ${adminControls}
                 </div>
             `;
@@ -288,8 +245,7 @@
     }
 
     function getSelectedCheckboxes(containerId) {
-        const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`);
-        return Array.from(checkboxes).map(cb => cb.value);
+        return Array.from(document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`)).map(cb => cb.value);
     }
 
     function submitReport(e) {
@@ -307,52 +263,107 @@
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 action: 'submitReport', token: USER_TOKEN,
-                incidentDate: document.getElementById('incDate').value,
-                incidentType: document.getElementById('incType').value,
-                location: document.getElementById('incLocation').value,
-                primaryStudents: primary, relatedStudents: related,
-                description: document.getElementById('incDescription').value,
-                actionTaken: document.getElementById('incAction').value
+                incidentDate: document.getElementById('incDate').value, incidentType: document.getElementById('incType').value,
+                location: document.getElementById('incLocation').value, primaryStudents: primary, relatedStudents: related,
+                description: document.getElementById('incDescription').value, actionTaken: document.getElementById('incAction').value
             })
         }).then(() => {
             alert("Report submitted successfully.");
             document.getElementById('submission-form').reset();
-            fetchData(); // Refresh data
-            switchTab('dashboard');
+            fetchData(); switchTab('dashboard');
             btn.disabled = false; btn.innerText = "Submit Report";
         });
     }
 
     function updateStatus(reportId) {
-        const status = document.getElementById(`status-${reportId}`).value;
-        const comments = document.getElementById(`comments-${reportId}`).value;
-        
         fetch(BACKEND_URL, {
             method: 'POST', mode: 'no-cors',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 action: 'updateReport', token: USER_TOKEN,
-                reportId: reportId, newStatus: status, adminComments: comments
+                reportId: reportId, newStatus: document.getElementById(`status-${reportId}`).value, adminComments: document.getElementById(`comments-${reportId}`).value
             })
-        }).then(() => {
-            alert("Status updated and email sent to reporting teacher.");
-            fetchData(); // Refresh dashboard
-        });
+        }).then(() => { alert("Status updated."); fetchData(); });
     }
 
-    // PDF Generation using html2pdf
-    function downloadPDF(reportId) {
-        const element = document.getElementById(`report-card-${reportId}`);
+    // Advanced PDF Generation Setup
+    function downloadFormalPDF(reportId) {
+        const r = REPORTS.find(rep => rep.id === reportId);
+        if (!r) return;
+
+        // Build a hidden, beautifully styled formal document specifically for print
+        const printDiv = document.createElement('div');
+        printDiv.style.position = 'absolute';
+        printDiv.style.left = '-9999px';
+        printDiv.style.top = '0';
+        printDiv.innerHTML = `
+            <div style="width: 800px; padding: 50px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1e293b; background: #fff;">
+                <div style="text-align: center; border-bottom: 3px solid #b91c1c; padding-bottom: 20px; margin-bottom: 30px;">
+                    <h1 style="font-size: 28px; font-weight: 800; margin: 0; color: #7f1d1d; letter-spacing: 1px;">SVA SCHOOL</h1>
+                    <h2 style="font-size: 16px; margin: 8px 0 0 0; color: #64748b; text-transform: uppercase; letter-spacing: 2px;">Official Incident Report</h2>
+                </div>
+                
+                <table style="width: 100%; font-size: 14px; margin-bottom: 25px; border-collapse: collapse;">
+                    <tr>
+                        <td style="padding: 8px 0;"><strong>Report ID:</strong> ${r.id}</td>
+                        <td style="padding: 8px 0; text-align: right;"><strong>Status:</strong> ${r.status}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0;"><strong>Date of Incident:</strong> ${r.date}</td>
+                        <td style="padding: 8px 0; text-align: right;"><strong>Date Filed:</strong> ${new Date(r.timestamp).toLocaleDateString()}</td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 8px 0;"><strong>Incident Type:</strong> ${r.type}</td>
+                        <td style="padding: 8px 0; text-align: right;"><strong>Location:</strong> ${r.location}</td>
+                    </tr>
+                </table>
+
+                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
+                    <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Reporting Staff / Faculty:</strong> ${r.reportedBy}</p>
+                    <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Primary Student(s) Involved:</strong><br> <span style="color: #475569;">${r.primary}</span></p>
+                    <p style="margin: 0; font-size: 14px;"><strong>Witness / Related Student(s):</strong><br> <span style="color: #475569;">${r.related || 'None reported'}</span></p>
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <h3 style="font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; color: #0f172a;">Detailed Description</h3>
+                    <p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.description}</p>
+                </div>
+
+                <div style="margin-bottom: 25px;">
+                    <h3 style="font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; color: #0f172a;">Immediate Action Taken</h3>
+                    <p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.actionTaken}</p>
+                </div>
+
+                ${r.comments ? `
+                <div style="margin-bottom: 25px;">
+                    <h3 style="font-size: 16px; border-bottom: 2px solid #b91c1c; padding-bottom: 5px; color: #7f1d1d;">Administrative Review Notes</h3>
+                    <p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.comments}</p>
+                </div>` : ''}
+
+                <div style="margin-top: 80px; display: flex; justify-content: space-between;">
+                    <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">Staff Signature</div>
+                    <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">Administrator Signature</div>
+                </div>
+                
+                <div style="margin-top: 40px; text-align: center; font-size: 10px; color: #94a3b8;">
+                    CONFIDENTIAL - SVA School Internal Records - Generated on ${new Date().toLocaleString()}
+                </div>
+            </div>
+        `;
+        document.body.appendChild(printDiv);
+
         const opt = {
-            margin:       0.5,
-            filename:     `Incident_Report_${reportId}.pdf`,
-            image:        { type: 'jpeg', quality: 0.98 },
-            html2canvas:  { scale: 2 },
+            margin:       0,
+            filename:     `SVA_Incident_${reportId}.pdf`,
+            image:        { type: 'jpeg', quality: 1 },
+            html2canvas:  { scale: 2, useCORS: true },
             jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
-        html2pdf().set(opt).from(element).save();
+
+        html2pdf().set(opt).from(printDiv.children[0]).save().then(() => {
+            document.body.removeChild(printDiv); // Cleanup DOM
+        });
     }
 </script>
-
 </body>
 </html>
