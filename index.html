@@ -249,9 +249,6 @@
                 studentReports.forEach(r => {
                     let statusColor = r.status === 'Pending Review' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : 'bg-green-100 text-green-800 border-green-300';
                     
-                    // --- NEW: Admin Edit UI Block ---
-                    let adminEditBlock = '';
-                    if (USER_ROLE === 'admin') {
                         // --- Admin Edit UI Block ---
                     let adminEditBlock = '';
                     if (USER_ROLE === 'admin') {
