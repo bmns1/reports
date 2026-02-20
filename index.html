@@ -383,63 +383,77 @@
         });
     }
 
-     // Official PDF Generator
-    function downloadFormalPDF(reportId) {
-        const r = REPORTS.find(rep => rep.id === reportId);
-        if (!r) return;
+    // Official PDF Generator
+function downloadFormalPDF(reportId) {
+    const r = REPORTS.find(rep => rep.id === reportId);
+    if (!r) return;
 
-        const printDiv = document.createElement('div');
-        printDiv.style.position = 'absolute'; printDiv.style.left = '-9999px'; printDiv.style.top = '0';
-        printDiv.innerHTML = `
-            <div style="width: 800px; padding: 50px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1e293b; background: #fff;">
-                <div style="text-align: center; border-bottom: 3px solid #b91c1c; padding-bottom: 20px; margin-bottom: 30px;">
-                    <h1 style="font-size: 28px; font-weight: 800; margin: 0; color: #7f1d1d; letter-spacing: 1px;">Silicon Valley Academy</h1>
-                    <h2 style="font-size: 16px; margin: 8px 0 0 0; color: #64748b; text-transform: uppercase; letter-spacing: 2px;">Official Incident Report</h2>
-                </div>
-                
-                <table style="width: 100%; font-size: 14px; margin-bottom: 25px; border-collapse: collapse;">
-                    <tr><td style="padding: 8px 0;"><strong>Report ID:</strong> ${r.id}</td><td style="padding: 8px 0; text-align: right;"><strong>Status:</strong> ${r.status}</td></tr>
-                    <tr><td style="padding: 8px 0;"><strong>Date of Incident:</strong> ${r.date}</td><td style="padding: 8px 0; text-align: right;"><strong>Date Filed:</strong> ${new Date(r.timestamp).toLocaleDateString()}</td></tr>
-                    <tr><td style="padding: 8px 0;"><strong>Incident Type:</strong> ${r.type}</td><td style="padding: 8px 0; text-align: right;"><strong>Location:</strong> ${r.location}</td></tr>
-                </table>
-
-                <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
-                    <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Reporting Staff / Faculty:</strong> ${r.reportedBy}</p>
-                    <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Primary Student(s) Involved:</strong><br> <span style="color: #475569;">${r.primary}</span></p>
-                    <p style="margin: 0; font-size: 14px;"><strong>Witness / Related Student(s):</strong><br> <span style="color: #475569;">${r.related || 'None reported'}</span></p>
-                </div>
-
-                <div style="margin-bottom: 25px;">
-                    <h3 style="font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; color: #0f172a;">Detailed Description</h3>
-                    <p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.description}</p>
-                </div>
-
-                <div style="margin-bottom: 25px;">
-                    <h3 style="font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; color: #0f172a;">Immediate Action Taken</h3>
-                    <p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.actionTaken}</p>
-                </div>
-
-                ${r.comments ? `<div style="margin-bottom: 25px;"><h3 style="font-size: 16px; border-bottom: 2px solid #b91c1c; padding-bottom: 5px; color: #7f1d1d;">Administrative Review Notes</h3><p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.comments}</p></div>` : ''}
-
-                <div style="margin-top: 80px; display: flex; justify-content: space-between;">
-                    <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">Staff Signature</div>
-                    <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">Administrator Signature</div>
-                </div>
-                
-                <div style="margin-top: 40px; text-align: center; font-size: 10px; color: #94a3b8;">
-                    CONFIDENTIAL - SVA School Internal Records - Generated on ${new Date().toLocaleString()}
-                </div>
+    const printDiv = document.createElement('div');
+    printDiv.style.position = 'absolute'; 
+    printDiv.style.left = '-9999px'; 
+    printDiv.style.top = '0';
+    
+    printDiv.innerHTML = `
+        <div style="width: 800px; padding: 50px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1e293b; background: #fff;">
+            <div style="text-align: center; border-bottom: 3px solid #0d9488; padding-bottom: 20px; margin-bottom: 30px;">
+                <h1 style="font-size: 28px; font-weight: 800; margin: 0; color: #0f766e; letter-spacing: 1px;">Silicon Valley Academy</h1>
+                <h2 style="font-size: 16px; margin: 8px 0 0 0; color: #64748b; text-transform: uppercase; letter-spacing: 2px;">Official Incident Report</h2>
             </div>
-        `;
-        document.body.appendChild(printDiv);
+            
+            <table style="width: 100%; font-size: 14px; margin-bottom: 25px; border-collapse: collapse;">
+                <tr><td style="padding: 8px 0;"><strong>Report ID:</strong> ${r.id}</td><td style="padding: 8px 0; text-align: right;"><strong>Status:</strong> ${r.status}</td></tr>
+                <tr><td style="padding: 8px 0;"><strong>Date of Incident:</strong> ${r.date}</td><td style="padding: 8px 0; text-align: right;"><strong>Date Filed:</strong> ${new Date(r.timestamp).toLocaleDateString()}</td></tr>
+                <tr><td style="padding: 8px 0;"><strong>Incident Type:</strong> ${r.type}</td><td style="padding: 8px 0; text-align: right;"><strong>Location:</strong> ${r.location}</td></tr>
+            </table>
 
-        const opt = {
-            margin: 0, filename: `SVA_Incident_${reportId}.pdf`, image: { type: 'jpeg', quality: 1 },
-            html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-        };
+            <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
+                <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Reporting Staff / Faculty:</strong> ${r.reportedBy}</p>
+                <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Primary Student(s) Involved:</strong><br> <span style="color: #475569;">${r.primary}</span></p>
+                <p style="margin: 0; font-size: 14px;"><strong>Witness / Related Student(s):</strong><br> <span style="color: #475569;">${r.related || 'None reported'}</span></p>
+            </div>
 
-        html2pdf().set(opt).from(printDiv.children[0]).save().then(() => { document.body.removeChild(printDiv); });
-    }
+            <div style="margin-bottom: 25px;">
+                <h3 style="font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; color: #0f172a;">Detailed Description</h3>
+                <p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.description}</p>
+            </div>
+
+            <div style="margin-bottom: 25px;">
+                <h3 style="font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; color: #0f172a;">Immediate Action Taken</h3>
+                <p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.actionTaken}</p>
+            </div>
+
+            ${r.comments ? `<div style="margin-bottom: 25px;"><h3 style="font-size: 16px; border-bottom: 2px solid #0d9488; padding-bottom: 5px; color: #0f766e;">Administrative Review Notes</h3><p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.comments}</p></div>` : ''}
+
+            <div style="margin-top: 80px; display: flex; justify-content: space-between;">
+                <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">Staff Signature</div>
+                <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">Administrator Signature</div>
+            </div>
+            
+            <div style="margin-top: 40px; text-align: center; font-size: 10px; color: #94a3b8;">
+                CONFIDENTIAL - SVA School Internal Records - Generated on ${new Date().toLocaleString()}
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(printDiv);
+
+    const opt = {
+        margin: 0, 
+        filename: `SVA_Incident_${reportId}.pdf`, 
+        image: { type: 'jpeg', quality: 1 },
+        html2canvas: { 
+            scale: 2, 
+            useCORS: true,
+            scrollY: 0, // Forces the capture to start at the top of the virtual element
+            windowY: 0  // Safeguard for newer browser updates
+        }, 
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    html2pdf().set(opt).from(printDiv.children[0]).save().then(() => { 
+        document.body.removeChild(printDiv); 
+    });
+}
 </script>
 </body>
 </html>
