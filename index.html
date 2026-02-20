@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVA Incident Tracker</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .fade-in { animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #cbd5e1;
+            background-color: #ffffff;
+            transition: all 0.2s;
+        }
+        .form-input:focus {
+            outline: none;
+            border-color: #b91c1c;
+            box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1);
+        }
+        
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            font-weight: 600;
+            color: #64748b;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            color: #b91c1c;
+            border-bottom: 2px solid #b91c1c;
+        }
+        .tab-btn:hover:not(.active) {
+            color: #334155;
+            border-bottom: 2px solid #cbd5e1;
+        }
+
+        .student-list { max-height: 150px; overflow-y: auto; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased">
+
+    <div id="view-login" class="fixed inset-0 z-50 bg-slate-100 flex items-center justify-center p-4 sm:p-8">
+        <div class="bg-white flex flex-col md:flex-row w-full max-w-4xl rounded-2xl shadow-xl overflow-hidden border border-slate-200 fade-in">
+            <div class="w-full md:w-1/2 bg-red-800 p-10 text-white flex flex-col justify-center relative">
+                <div class="relative z-10">
+                    <h2 class="text-3xl font-bold mb-4">SVA Incident Portal</h2>
+                    <p class="text-red-100 mb-6 leading-relaxed">
+                        Secure reporting and tracking for student incidents, behavior, and interventions.
+                    </p>
+                </div>
+            </div>
+            <div class="w-full md:w-1/2 p-10 flex flex-col justify-center items-center text-center">
+                <h1 class="text-2xl font-bold text-slate-800 mb-2">Secure Sign In</h1>
+                <p class="text-slate-500 mb-8 text-sm">Use your official <strong>@svaschool.org</strong> account.</p>
+                <div id="g_id_onload" data-client_id="14216824305-v19ecsmrhk1muaglrlhjceqjk5oeqr4n.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_select="false"></div>
+                <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="view-app" class="hidden min-h-screen max-w-5xl mx-auto p-4 sm:p-8">
+        <header class="mb-6 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="flex justify-between items-center p-4 border-b border-slate-100">
+                <div>
+                    <h1 class="text-lg font-bold text-red-800">SVA Incident Portal</h1>
+                    <p class="text-xs text-slate-500"><span id="user-display"></span> | Role: <span id="role-display" class="font-bold capitalize"></span></p>
+                </div>
+                <button onclick="logout()" class="text-sm text-slate-500 hover:text-slate-800 transition">Sign Out</button>
+            </div>
+            <div class="flex px-2 pt-2 bg-slate-50">
+                <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn active">Dashboard</button>
+                <button onclick="switchTab('report')" id="tab-btn-report" class="tab-btn">File New Report</button>
+            </div>
+        </header>
+
+        <div id="tab-dashboard" class="fade-in">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
+                <input type="text" id="filter-search" placeholder="Search by Student Name or Report ID..." class="form-input text-sm" oninput="renderReports()">
+            </div>
+            <div id="reports-feed" class="space-y-6 pb-10">
+                <div class="text-center py-10 text-slate-500">Loading records...</div>
+            </div>
+        </div>
+
+        <div id="tab-report" class="hidden fade-in">
+            <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 sm:p-8">
+                <h2 class="text-2xl font-bold text-slate-800 mb-6">File Incident Report</h2>
+                <form id="submission-form" onsubmit="submitReport(event)" class="space-y-5">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold mb-1">Incident Date</label>
+                            <input type="date" id="incDate" required class="form-input">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-1">Incident Type</label>
+                            <select id="incType" required class="form-input">
+                                <option value="" disabled selected>Select...</option>
+                                <option value="Injury">Medical / Injury</option>
+                                <option value="Physical Altercation">Physical Altercation / Fight</option>
+                                <option value="Bullying">Bullying / Harassment</option>
+                                <option value="Verbal Abuse">Verbal Abuse / Disrespect</option>
+                                <option value="Property Damage">Property Damage</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold mb-1">Location</label>
+                            <input type="text" id="incLocation" required placeholder="e.g., Cafeteria, Room 12" class="form-input">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+                        <div class="border border-slate-200 p-4 rounded-lg bg-slate-50">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Primary Student(s) Involved</label>
+                            <div id="primary-students-list" class="student-list space-y-2 text-sm"></div>
+                        </div>
+                        <div class="border border-slate-200 p-4 rounded-lg bg-slate-50">
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Witness / Related Student(s)</label>
+                            <div id="related-students-list" class="student-list space-y-2 text-sm"></div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Detailed Description</label>
+                        <textarea id="incDescription" required rows="4" placeholder="What happened before, during, and after?" class="form-input"></textarea>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold mb-1">Immediate Action Taken</label>
+                        <textarea id="incAction" required rows="2" placeholder="e.g., Sent to nurse, separated students..." class="form-input"></textarea>
+                    </div>
+
+                    <div class="pt-4">
+                        <button type="submit" id="submit-btn" class="w-full bg-red-700 hover:bg-red-800 text-white font-bold py-3 rounded-lg transition">Submit Report</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+<script>
+    const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxJgMn6ad4FbQsK31Ue5TQhG3f-kcL16yX_FeHz-N-sE1cLrro8O92TfNsNQJ4VwfL6Xw/exec"; 
+    let USER_TOKEN = "", USER_EMAIL = "", USER_ROLE = "";
+    let STUDENTS = [], REPORTS = [];
+
+    function handleCredentialResponse(response) {
+        USER_TOKEN = response.credential; 
+        USER_EMAIL = JSON.parse(atob(response.credential.split('.')[1])).email;
+        
+        document.getElementById('view-login').classList.add('hidden');
+        document.getElementById('view-app').classList.remove('hidden');
+        document.getElementById('user-display').innerText = USER_EMAIL;
+        
+        fetchData();
+    }
+
+    function logout() {
+        USER_TOKEN = ""; USER_EMAIL = "";
+        document.getElementById('view-app').classList.add('hidden');
+        document.getElementById('view-login').classList.remove('hidden');
+    }
+
+    function switchTab(tabName) {
+        document.getElementById('tab-btn-dashboard').classList.remove('active');
+        document.getElementById('tab-btn-report').classList.remove('active');
+        document.getElementById(`tab-btn-${tabName}`).classList.add('active');
+        
+        document.getElementById('tab-dashboard').classList.add('hidden');
+        document.getElementById('tab-report').classList.add('hidden');
+        document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+    }
+
+    function fetchData() {
+        fetch(BACKEND_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'init', token: USER_TOKEN })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if(data.status === 'success') {
+                USER_ROLE = data.role;
+                STUDENTS = data.students;
+                REPORTS = data.reports;
+                document.getElementById('role-display').innerText = USER_ROLE;
+                populateStudents();
+                renderReports();
+            } else {
+                alert(data.message);
+                logout();
+            }
+        });
+    }
+
+    function populateStudents() {
+        let primaryHTML = '', relatedHTML = '';
+        STUDENTS.forEach(s => {
+            const label = `<label class="flex items-center space-x-2"><input type="checkbox" value="${s.name} (${s.id})" class="form-checkbox text-red-600 rounded"><span>${s.name} - ${s.grade}</span></label>`;
+            primaryHTML += label;
+            relatedHTML += label;
+        });
+        document.getElementById('primary-students-list').innerHTML = primaryHTML || "No assigned students found.";
+        document.getElementById('related-students-list').innerHTML = relatedHTML || "No assigned students found.";
+    }
+
+    function renderReports() {
+        const query = document.getElementById('filter-search').value.toLowerCase();
+        const feed = document.getElementById('reports-feed');
+        
+        const filtered = REPORTS.filter(r => 
+            r.primary.toLowerCase().includes(query) || 
+            r.id.toLowerCase().includes(query) ||
+            r.type.toLowerCase().includes(query)
+        );
+
+        if (filtered.length === 0) {
+            feed.innerHTML = `<div class="text-slate-500 text-center py-10 bg-white rounded-xl border border-slate-200">No reports found.</div>`;
+            return;
+        }
+
+        let html = '';
+        filtered.forEach(r => {
+            let statusColor = r.status === 'Pending Review' ? 'bg-yellow-100 text-yellow-800' : 'bg-green-100 text-green-800';
+            
+            // Admin Update UI
+            let adminControls = '';
+            if (USER_ROLE === 'admin') {
+                adminControls = `
+                <div class="mt-4 pt-4 border-t border-slate-200 bg-slate-50 p-4 rounded-lg">
+                    <h4 class="font-bold text-sm mb-2 text-slate-700">Admin Controls</h4>
+                    <select id="status-${r.id}" class="form-input text-sm mb-2">
+                        <option value="${r.status}" selected hidden>${r.status}</option>
+                        <option value="Pending Review">Pending Review</option>
+                        <option value="Reviewed">Reviewed</option>
+                        <option value="Contacted Parents">Contacted Parents</option>
+                        <option value="Met with Student">Met with Student</option>
+                        <option value="Resolved">Resolved</option>
+                    </select>
+                    <textarea id="comments-${r.id}" class="form-input text-sm mb-2" rows="2" placeholder="Admin notes...">${r.comments}</textarea>
+                    <button onclick="updateStatus('${r.id}')" class="bg-slate-800 text-white px-4 py-2 rounded text-sm hover:bg-slate-700">Save Update</button>
+                </div>`;
+            }
+
+            html += `
+                <div id="report-card-${r.id}" class="bg-white rounded-xl shadow-md border border-slate-200 p-6 fade-in">
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800">${r.type} <span class="text-slate-400 text-sm font-normal">#${r.id}</span></h3>
+                            <p class="text-xs text-slate-500">Filed by ${r.reportedBy} on ${new Date(r.timestamp).toLocaleDateString()}</p>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <span class="${statusColor} text-xs font-bold px-3 py-1 rounded-full">${r.status}</span>
+                            <button onclick="downloadPDF('${r.id}')" class="text-blue-600 hover:text-blue-800 text-sm font-semibold underline">PDF</button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4 text-sm mb-4">
+                        <div><strong>Incident Date:</strong> ${r.date}</div>
+                        <div><strong>Location:</strong> ${r.location}</div>
+                        <div class="col-span-2"><strong>Primary Students:</strong> ${r.primary}</div>
+                        <div class="col-span-2"><strong>Witness/Related:</strong> ${r.related || 'None'}</div>
+                    </div>
+
+                    <div class="bg-slate-50 p-3 rounded text-sm text-slate-700 mb-2 border border-slate-100">
+                        <strong>Description:</strong><br>${r.description}
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded text-sm text-slate-700 border border-slate-100 mb-2">
+                        <strong>Action Taken:</strong><br>${r.actionTaken}
+                    </div>
+                    
+                    ${r.comments ? `<div class="bg-red-50 p-3 rounded text-sm text-red-800 border border-red-100"><strong>Admin Note:</strong> ${r.comments}</div>` : ''}
+                    
+                    ${adminControls}
+                </div>
+            `;
+        });
+        feed.innerHTML = html;
+    }
+
+    function getSelectedCheckboxes(containerId) {
+        const checkboxes = document.querySelectorAll(`#${containerId} input[type="checkbox"]:checked`);
+        return Array.from(checkboxes).map(cb => cb.value);
+    }
+
+    function submitReport(e) {
+        e.preventDefault();
+        const btn = document.getElementById('submit-btn');
+        const primary = getSelectedCheckboxes('primary-students-list');
+        const related = getSelectedCheckboxes('related-students-list');
+
+        if(primary.length === 0) return alert("Please select at least one primary student.");
+
+        btn.disabled = true; btn.innerText = "Submitting...";
+
+        fetch(BACKEND_URL, {
+            method: 'POST', mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'submitReport', token: USER_TOKEN,
+                incidentDate: document.getElementById('incDate').value,
+                incidentType: document.getElementById('incType').value,
+                location: document.getElementById('incLocation').value,
+                primaryStudents: primary, relatedStudents: related,
+                description: document.getElementById('incDescription').value,
+                actionTaken: document.getElementById('incAction').value
+            })
+        }).then(() => {
+            alert("Report submitted successfully.");
+            document.getElementById('submission-form').reset();
+            fetchData(); // Refresh data
+            switchTab('dashboard');
+            btn.disabled = false; btn.innerText = "Submit Report";
+        });
+    }
+
+    function updateStatus(reportId) {
+        const status = document.getElementById(`status-${reportId}`).value;
+        const comments = document.getElementById(`comments-${reportId}`).value;
+        
+        fetch(BACKEND_URL, {
+            method: 'POST', mode: 'no-cors',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'updateReport', token: USER_TOKEN,
+                reportId: reportId, newStatus: status, adminComments: comments
+            })
+        }).then(() => {
+            alert("Status updated and email sent to reporting teacher.");
+            fetchData(); // Refresh dashboard
+        });
+    }
+
+    // PDF Generation using html2pdf
+    function downloadPDF(reportId) {
+        const element = document.getElementById(`report-card-${reportId}`);
+        const opt = {
+            margin:       0.5,
+            filename:     `Incident_Report_${reportId}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2 },
+            jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(element).save();
+    }
+</script>
+
+</body>
+</html>
