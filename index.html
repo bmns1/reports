@@ -252,6 +252,9 @@
                     // --- NEW: Admin Edit UI Block ---
                     let adminEditBlock = '';
                     if (USER_ROLE === 'admin') {
+                        // --- Admin Edit UI Block ---
+                    let adminEditBlock = '';
+                    if (USER_ROLE === 'admin') {
                         adminEditBlock = `
                             <div class="mt-4 bg-slate-50 p-4 rounded border border-slate-200 ml-2">
                                 <strong class="block mb-2 text-slate-700 text-xs uppercase">Admin Update Portal</strong>
@@ -260,12 +263,13 @@
                                         <option value="Pending Review" ${r.status === 'Pending Review' ? 'selected' : ''}>Pending Review</option>
                                         <option value="Met with Teacher" ${r.status === 'Met with Teacher' ? 'selected' : ''}>Met with Teacher</option>
                                         <option value="Met with Student" ${r.status === 'Met with Student' ? 'selected' : ''}>Met with Student</option>
+                                        <option value="Student - Khalil" ${r.status === 'Student - Khalil' ? 'selected' : ''}>Student - Khalil</option>
                                         <option value="Emailed Parents" ${r.status === 'Emailed Parents' ? 'selected' : ''}>Emailed Parents</option>
                                         <option value="Met with Parents" ${r.status === 'Met with Parents' ? 'selected' : ''}>Met with Parents</option>
                                         <option value="Reviewed / Resolved" ${r.status === 'Reviewed / Resolved' ? 'selected' : ''}>Reviewed / Resolved</option>
                                         <option value="Escalated" ${r.status === 'Escalated' ? 'selected' : ''}>Escalated</option>
                                     </select>
-                                    <input type="text" id="comments-${r.id}" class="form-input text-sm sm:w-2/3" placeholder="Add administrative notes..." value="${r.comments || ''}">
+                                    <input type="text" id="comments-${r.id}" class="form-input text-sm sm:w-2/3" placeholder="Add new note to the log (optional)...">
                                 </div>
                                 <button onclick="updateReportStatus('${r.id}')" id="btn-update-${r.id}" class="mt-3 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold py-2 px-4 rounded transition w-full sm:w-auto">
                                     Save Admin Update
@@ -306,7 +310,7 @@
                                 <p class="leading-relaxed">${r.actionTaken}</p>
                             </div>
                             
-                            ${r.comments && USER_ROLE !== 'admin' ? `<div class="bg-slate-800 p-4 rounded border border-slate-700 text-sm text-white ml-2"><strong class="block mb-2 text-slate-300 text-xs uppercase">Administrator Note</strong><p class="leading-relaxed">${r.comments}</p></div>` : ''}
+                            ${r.comments ? `<div class="bg-slate-800 p-4 rounded border border-slate-700 text-sm text-white ml-2"><strong class="block mb-2 text-slate-300 text-xs uppercase">Admin Update History</strong><p class="leading-relaxed whitespace-pre-wrap">${r.comments}</p></div>` : ''}
                             
                             ${adminEditBlock}
                         </div>
