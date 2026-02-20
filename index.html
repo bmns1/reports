@@ -258,6 +258,10 @@
                                 <div class="flex flex-col sm:flex-row gap-3">
                                     <select id="status-${r.id}" class="form-input text-sm sm:w-1/3">
                                         <option value="Pending Review" ${r.status === 'Pending Review' ? 'selected' : ''}>Pending Review</option>
+                                        <option value="Met with Teacher" ${r.status === 'Met with Teacher' ? 'selected' : ''}>Met with Teacher</option>
+                                        <option value="Met with Student" ${r.status === 'Met with Student' ? 'selected' : ''}>Met with Student</option>
+                                        <option value="Emailed Parents" ${r.status === 'Emailed Parents' ? 'selected' : ''}>Emailed Parents</option>
+                                        <option value="Met with Parents" ${r.status === 'Met with Parents' ? 'selected' : ''}>Met with Parents</option>
                                         <option value="Reviewed / Resolved" ${r.status === 'Reviewed / Resolved' ? 'selected' : ''}>Reviewed / Resolved</option>
                                         <option value="Escalated" ${r.status === 'Escalated' ? 'selected' : ''}>Escalated</option>
                                     </select>
