@@ -59,8 +59,19 @@
         </header>
 
         <div id="tab-dashboard" class="fade-in">
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6">
-                <input type="text" id="filter-search" placeholder="Search students by name..." class="form-input text-sm" oninput="renderDashboard()">
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-col md:flex-row gap-4">
+                <input type="text" id="filter-search" placeholder="Search students by name..." class="form-input text-sm md:w-2/3" oninput="renderDashboard()">
+                <select id="filter-type" class="form-input text-sm md:w-1/3 font-semibold text-slate-700" onchange="renderDashboard()">
+                    <option value="all">View All Students</option>
+                    <option value="any_report">Only Students w/ Reports</option>
+                    <option disabled>── Filter by Report Type ──</option>
+                    <option value="Injury">Medical / Injury</option>
+                    <option value="Physical Altercation">Physical Altercation</option>
+                    <option value="Bullying">Bullying / Harassment</option>
+                    <option value="Verbal Abuse">Verbal Abuse / Disrespect</option>
+                    <option value="Property Damage">Property Damage</option>
+                    <option value="Other">Other</option>
+                </select>
             </div>
             <div id="dashboard-feed" class="space-y-4 pb-10">
                 <div class="text-center py-10 text-slate-500">Loading student records...</div>
@@ -79,7 +90,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-semibold mb-1 text-slate-700">Incident Type</label>
-                            <select id="incType" required class="form-input">
+                            <select id="incType" required class="form-input text-red-700 font-semibold">
                                 <option value="" disabled selected>Select...</option>
                                 <option value="Injury">Medical / Injury</option>
                                 <option value="Physical Altercation">Physical Altercation / Fight</option>
@@ -119,7 +130,7 @@
                     </div>
 
                     <div class="pt-4">
-                        <button type="submit" id="submit-btn" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 rounded-lg shadow-md transition transform active:scale-[0.99]">Submit Official Report</button>
+                        <button type="submit" id="submit-btn" class="w-full bg-red-700 hover:bg-red-800 text-white font-bold py-3 rounded-lg shadow-md transition transform active:scale-[0.99]">Submit Official Report</button>
                     </div>
                 </form>
             </div>
@@ -170,12 +181,15 @@
     }
 
     function populateStudents() {
-        let html = '';
+        let primaryHTML = '';
+        let relatedHTML = '';
         STUDENTS.forEach(s => {
-            html += `<label class="flex items-center space-x-2 py-1"><input type="checkbox" value="${s.name} (${s.id})" class="form-checkbox text-teal-600 rounded focus:ring-teal-500"><span>${s.name} <span class="text-slate-400 ml-1 text-xs">Gr.${s.grade}</span></span></label>`;
+            // Added specific IDs to checkboxes for reliable Javascript targeting
+            primaryHTML += `<label class="flex items-center space-x-2 py-1"><input type="checkbox" id="primary-cb-${s.id}" value="${s.name} (${s.id})" class="form-checkbox text-red-600 rounded focus:ring-red-500"><span>${s.name} <span class="text-slate-400 ml-1 text-xs">Gr.${s.grade}</span></span></label>`;
+            relatedHTML += `<label class="flex items-center space-x-2 py-1"><input type="checkbox" id="related-cb-${s.id}" value="${s.name} (${s.id})" class="form-checkbox text-red-600 rounded focus:ring-red-500"><span>${s.name} <span class="text-slate-400 ml-1 text-xs">Gr.${s.grade}</span></span></label>`;
         });
-        document.getElementById('primary-students-list').innerHTML = html || "No assigned students found.";
-        document.getElementById('related-students-list').innerHTML = html || "No assigned students found.";
+        document.getElementById('primary-students-list').innerHTML = primaryHTML || "No assigned students found.";
+        document.getElementById('related-students-list').innerHTML = relatedHTML || "No assigned students found.";
     }
 
     function filterCheckboxes(inputElement, listId) {
@@ -188,21 +202,29 @@
     }
 
     function renderDashboard() {
-        const query = document.getElementById('filter-search').value.toLowerCase();
+        const searchQuery = document.getElementById('filter-search').value.toLowerCase();
+        const filterType = document.getElementById('filter-type').value;
         const feed = document.getElementById('dashboard-feed');
         
-        const filteredStudents = STUDENTS.filter(s => s.name.toLowerCase().includes(query));
-
-        if (filteredStudents.length === 0) {
-            feed.innerHTML = `<div class="text-slate-500 text-center py-10 bg-white rounded-xl border border-slate-200">No students found.</div>`;
-            return;
-        }
-
         let html = '';
-        filteredStudents.forEach(s => {
+        let visibleCount = 0;
+
+        STUDENTS.forEach(s => {
+            // Apply Text Search
+            if (!s.name.toLowerCase().includes(searchQuery)) return;
+
             const studentString = `${s.name} (${s.id})`;
             const studentReports = REPORTS.filter(r => r.primary.includes(studentString) || r.related.includes(studentString));
             
+            // Apply Dropdown Filter
+            if (filterType === 'any_report' && studentReports.length === 0) return;
+            if (filterType !== 'all' && filterType !== 'any_report') {
+                const hasSpecificReport = studentReports.some(r => r.type === filterType);
+                if (!hasSpecificReport) return; 
+            }
+
+            visibleCount++;
+
             // Incident Badges
             const counts = {};
             studentReports.forEach(r => counts[r.type] = (counts[r.type] || 0) + 1);
@@ -211,7 +233,7 @@
                 badges = `<span class="bg-slate-100 text-slate-500 text-xs font-semibold px-3 py-1 rounded-full border border-slate-200">0 Incidents</span>`;
             } else {
                 for (const [type, count] of Object.entries(counts)) {
-                    badges += `<span class="bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold px-3 py-1 rounded-full mr-2">${type}: ${count}</span>`;
+                    badges += `<span class="bg-red-100 border border-red-200 text-red-800 text-xs font-bold px-3 py-1 rounded-full mr-2 shadow-sm">${type}: ${count}</span>`;
                 }
             }
 
@@ -220,43 +242,45 @@
                 ? `<a href="mailto:${s.parentEmail}?subject=SVA School Update regarding ${s.name}" class="text-slate-600 hover:text-teal-700 text-sm font-semibold flex items-center gap-1 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg> Email Parent</a>`
                 : `<span class="text-slate-400 text-xs italic flex items-center gap-1">No parent email on file</span>`;
 
-            // Complete Report Cards for Expanded View
+            // Report Cards - POPPING IN RED
             let reportsHTML = '';
             if (studentReports.length > 0) {
                 reportsHTML = `<div class="mt-4 space-y-4">`;
                 studentReports.forEach(r => {
-                    let statusColor = r.status === 'Pending Review' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' : 'bg-green-100 text-green-800 border-green-200';
+                    let statusColor = r.status === 'Pending Review' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : 'bg-green-100 text-green-800 border-green-300';
                     
                     reportsHTML += `
-                        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm relative">
-                            <div class="flex justify-between items-start mb-4 pb-4 border-b border-slate-100">
+                        <div class="bg-white p-5 rounded-lg border-2 border-red-500 shadow-md relative overflow-hidden">
+                            <div class="absolute top-0 left-0 w-2 h-full bg-red-600"></div>
+                            
+                            <div class="flex justify-between items-start mb-4 pb-4 border-b border-red-100 pl-2">
                                 <div>
-                                    <h5 class="text-base font-bold text-slate-800">${r.type}</h5>
+                                    <h5 class="text-lg font-extrabold text-red-700">${r.type}</h5>
                                     <p class="text-xs text-slate-400 mt-1">Report ID: #${r.id}</p>
                                 </div>
                                 <div class="flex items-center gap-3">
                                     <span class="${statusColor} border text-xs font-bold px-3 py-1 rounded-full">${r.status}</span>
-                                    <button onclick="downloadFormalPDF('${r.id}')" class="text-teal-600 hover:text-teal-800 text-sm font-semibold flex items-center gap-1 bg-teal-50 px-3 py-1 rounded transition hover:bg-teal-100"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> PDF</button>
+                                    <button onclick="downloadFormalPDF('${r.id}')" class="text-slate-600 hover:text-red-700 text-sm font-bold flex items-center gap-1 bg-slate-100 px-3 py-1 rounded transition border border-slate-200 hover:bg-red-50 hover:border-red-200"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Save PDF</button>
                                 </div>
                             </div>
                             
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6 text-sm mb-4">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6 text-sm mb-4 pl-2">
                                 <div><strong class="text-slate-500 text-xs uppercase block mb-1">Date</strong> <span class="text-slate-800 font-medium">${r.date}</span></div>
                                 <div><strong class="text-slate-500 text-xs uppercase block mb-1">Location</strong> <span class="text-slate-800 font-medium">${r.location}</span></div>
                                 <div><strong class="text-slate-500 text-xs uppercase block mb-1">Reported By</strong> <span class="text-slate-800 font-medium">${r.reportedBy}</span></div>
                                 <div><strong class="text-slate-500 text-xs uppercase block mb-1">Witnesses/Related</strong> <span class="text-slate-800">${r.related || 'None'}</span></div>
                             </div>
 
-                            <div class="bg-slate-50 p-4 rounded border border-slate-100 text-sm text-slate-700 mb-3">
-                                <strong class="block mb-2 text-slate-800 text-xs uppercase">Description</strong>
+                            <div class="bg-red-50/50 p-4 rounded border border-red-100 text-sm text-slate-800 mb-3 ml-2">
+                                <strong class="block mb-2 text-red-800 text-xs uppercase">Description</strong>
                                 <p class="leading-relaxed">${r.description}</p>
                             </div>
-                            <div class="bg-slate-50 p-4 rounded border border-slate-100 text-sm text-slate-700 mb-3">
-                                <strong class="block mb-2 text-slate-800 text-xs uppercase">Action Taken</strong>
+                            <div class="bg-red-50/50 p-4 rounded border border-red-100 text-sm text-slate-800 mb-3 ml-2">
+                                <strong class="block mb-2 text-red-800 text-xs uppercase">Action Taken</strong>
                                 <p class="leading-relaxed">${r.actionTaken}</p>
                             </div>
                             
-                            ${r.comments ? `<div class="bg-teal-50 p-4 rounded border border-teal-100 text-sm text-teal-900"><strong class="block mb-2 text-teal-800 text-xs uppercase">Administrator Note</strong><p class="leading-relaxed">${r.comments}</p></div>` : ''}
+                            ${r.comments ? `<div class="bg-slate-800 p-4 rounded border border-slate-700 text-sm text-white ml-2"><strong class="block mb-2 text-slate-300 text-xs uppercase">Administrator Note</strong><p class="leading-relaxed">${r.comments}</p></div>` : ''}
                         </div>
                     `;
                 });
@@ -265,7 +289,7 @@
                 reportsHTML = `<div class="bg-white rounded border border-slate-200 p-8 text-center mt-4"><p class="text-slate-500 italic">No incident history recorded for this student.</p></div>`;
             }
 
-            // Build Accordion Card
+            // Student Row
             html += `
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in">
                     <div class="p-5 cursor-pointer hover:bg-slate-50 transition flex justify-between items-center" onclick="toggleDetails('${s.id}')">
@@ -278,10 +302,10 @@
                         </div>
                     </div>
                     
-                    <div id="details-${s.id}" class="hidden bg-slate-100/50 p-5 border-t border-slate-200">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-4">
+                    <div id="details-${s.id}" class="hidden bg-slate-100 p-5 border-t border-slate-200 shadow-inner">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4 bg-white p-3 rounded border border-slate-200">
                             ${parentContactLink}
-                            <button onclick="fileReportForStudent('${studentString}')" class="bg-teal-700 text-white text-sm font-semibold px-4 py-2 rounded shadow hover:bg-teal-800 transition transform active:scale-95 w-full sm:w-auto">
+                            <button onclick="fileReportForStudent('${s.id}')" class="bg-red-700 text-white text-sm font-bold px-4 py-2 rounded shadow hover:bg-red-800 transition transform active:scale-95 w-full sm:w-auto">
                                 + File Report for ${s.name}
                             </button>
                         </div>
@@ -290,7 +314,8 @@
                 </div>
             `;
         });
-        feed.innerHTML = html;
+        
+        feed.innerHTML = visibleCount > 0 ? html : `<div class="text-slate-500 text-center py-10 bg-white rounded-xl border border-slate-200 shadow-sm">No students match your selected filters.</div>`;
     }
 
     function toggleDetails(studentId) {
@@ -305,17 +330,22 @@
         }
     }
 
-    function fileReportForStudent(studentString) {
+    // Fixed ID-Based Checkbox Targeting
+    function fileReportForStudent(studentId) {
         switchTab('report');
         document.getElementById('submission-form').reset();
         
+        // Reset Searches
         document.getElementById('search-primary').value = '';
         document.getElementById('search-related').value = '';
         filterCheckboxes(document.getElementById('search-primary'), 'primary-students-list');
         filterCheckboxes(document.getElementById('search-related'), 'related-students-list');
 
+        // Uncheck all
         document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-        const targetCb = document.querySelector(`#primary-students-list input[value="${studentString}"]`);
+        
+        // Check exact target by specific DOM ID
+        const targetCb = document.getElementById(`primary-cb-${studentId}`);
         if (targetCb) {
             targetCb.checked = true;
             targetCb.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -353,16 +383,15 @@
         });
     }
 
+    // Fix for Blank PDF: Passes formatted HTML string directly to the library
     function downloadFormalPDF(reportId) {
         const r = REPORTS.find(rep => rep.id === reportId);
-        if (!r) return;
+        if (!r) return alert("Report data not found.");
 
-        const printDiv = document.createElement('div');
-        printDiv.style.position = 'absolute'; printDiv.style.left = '-9999px'; printDiv.style.top = '0';
-        printDiv.innerHTML = `
+        const htmlString = `
             <div style="width: 800px; padding: 50px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1e293b; background: #fff;">
-                <div style="text-align: center; border-bottom: 3px solid #0d9488; padding-bottom: 20px; margin-bottom: 30px;">
-                    <h1 style="font-size: 28px; font-weight: 800; margin: 0; color: #0f766e; letter-spacing: 1px;">SVA SCHOOL</h1>
+                <div style="text-align: center; border-bottom: 3px solid #b91c1c; padding-bottom: 20px; margin-bottom: 30px;">
+                    <h1 style="font-size: 28px; font-weight: 800; margin: 0; color: #7f1d1d; letter-spacing: 1px;">SVA SCHOOL</h1>
                     <h2 style="font-size: 16px; margin: 8px 0 0 0; color: #64748b; text-transform: uppercase; letter-spacing: 2px;">Official Incident Report</h2>
                 </div>
                 
@@ -388,7 +417,7 @@
                     <p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.actionTaken}</p>
                 </div>
 
-                ${r.comments ? `<div style="margin-bottom: 25px;"><h3 style="font-size: 16px; border-bottom: 2px solid #0d9488; padding-bottom: 5px; color: #0f766e;">Administrative Review Notes</h3><p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.comments}</p></div>` : ''}
+                ${r.comments ? `<div style="margin-bottom: 25px;"><h3 style="font-size: 16px; border-bottom: 2px solid #b91c1c; padding-bottom: 5px; color: #7f1d1d;">Administrative Review Notes</h3><p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.comments}</p></div>` : ''}
 
                 <div style="margin-top: 80px; display: flex; justify-content: space-between;">
                     <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">Faculty Signature</div>
@@ -400,14 +429,17 @@
                 </div>
             </div>
         `;
-        document.body.appendChild(printDiv);
 
         const opt = {
-            margin: 0, filename: `SVA_Incident_${reportId}.pdf`, image: { type: 'jpeg', quality: 1 },
-            html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            margin: 0, 
+            filename: `SVA_Incident_${reportId}.pdf`, 
+            image: { type: 'jpeg', quality: 1 },
+            html2canvas: { scale: 2 }, 
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
 
-        html2pdf().set(opt).from(printDiv.children[0]).save().then(() => { document.body.removeChild(printDiv); });
+        // Bypasses the DOM attachment step entirely to guarantee rendering
+        html2pdf().set(opt).from(htmlString).save();
     }
 </script>
 </body>
