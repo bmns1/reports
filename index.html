@@ -383,12 +383,14 @@
         });
     }
 
-    // Fix for Blank PDF: Passes formatted HTML string directly to the library
+     // Official PDF Generator
     function downloadFormalPDF(reportId) {
         const r = REPORTS.find(rep => rep.id === reportId);
-        if (!r) return alert("Report data not found.");
+        if (!r) return;
 
-        const htmlString = `
+        const printDiv = document.createElement('div');
+        printDiv.style.position = 'absolute'; printDiv.style.left = '-9999px'; printDiv.style.top = '0';
+        printDiv.innerHTML = `
             <div style="width: 800px; padding: 50px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1e293b; background: #fff;">
                 <div style="text-align: center; border-bottom: 3px solid #b91c1c; padding-bottom: 20px; margin-bottom: 30px;">
                     <h1 style="font-size: 28px; font-weight: 800; margin: 0; color: #7f1d1d; letter-spacing: 1px;">Silicon Valley Academy</h1>
@@ -402,7 +404,7 @@
                 </table>
 
                 <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
-                    <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Reporting Faculty:</strong> ${r.reportedBy}</p>
+                    <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Reporting Staff / Faculty:</strong> ${r.reportedBy}</p>
                     <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Primary Student(s) Involved:</strong><br> <span style="color: #475569;">${r.primary}</span></p>
                     <p style="margin: 0; font-size: 14px;"><strong>Witness / Related Student(s):</strong><br> <span style="color: #475569;">${r.related || 'None reported'}</span></p>
                 </div>
@@ -420,7 +422,7 @@
                 ${r.comments ? `<div style="margin-bottom: 25px;"><h3 style="font-size: 16px; border-bottom: 2px solid #b91c1c; padding-bottom: 5px; color: #7f1d1d;">Administrative Review Notes</h3><p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.comments}</p></div>` : ''}
 
                 <div style="margin-top: 80px; display: flex; justify-content: space-between;">
-                    <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">Faculty Signature</div>
+                    <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">Staff Signature</div>
                     <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">Administrator Signature</div>
                 </div>
                 
@@ -429,17 +431,14 @@
                 </div>
             </div>
         `;
+        document.body.appendChild(printDiv);
 
         const opt = {
-            margin: 0, 
-            filename: `SVA_Incident_${reportId}.pdf`, 
-            image: { type: 'jpeg', quality: 1 },
-            html2canvas: { scale: 2 }, 
-            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            margin: 0, filename: `SVA_Incident_${reportId}.pdf`, image: { type: 'jpeg', quality: 1 },
+            html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
 
-        // Bypasses the DOM attachment step entirely to guarantee rendering
-        html2pdf().set(opt).from(htmlString).save();
+        html2pdf().set(opt).from(printDiv.children[0]).save().then(() => { document.body.removeChild(printDiv); });
     }
 </script>
 </body>
