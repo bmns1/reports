@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
@@ -18,9 +18,9 @@
             width: 100%; padding: 0.75rem 1rem; border-radius: 0.5rem;
             border: 1px solid #cbd5e1; background-color: #ffffff; transition: all 0.2s;
         }
-        .form-input:focus { outline: none; border-color: #b91c1c; box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.1); }
+        .form-input:focus { outline: none; border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1); }
         .tab-btn { padding: 0.75rem 1.5rem; font-weight: 600; color: #64748b; border-bottom: 2px solid transparent; transition: all 0.2s; }
-        .tab-btn.active { color: #b91c1c; border-bottom: 2px solid #b91c1c; }
+        .tab-btn.active { color: #0d9488; border-bottom: 2px solid #0d9488; }
         .student-list { max-height: 180px; overflow-y: auto; background: #fff; border: 1px solid #cbd5e1; padding: 0.5rem; border-radius: 0.5rem; }
     </style>
 </head>
@@ -28,10 +28,10 @@
 
     <div id="view-login" class="fixed inset-0 z-50 bg-slate-100 flex items-center justify-center p-4 sm:p-8">
         <div class="bg-white flex flex-col md:flex-row w-full max-w-4xl rounded-2xl shadow-xl overflow-hidden border border-slate-200 fade-in">
-            <div class="w-full md:w-1/2 bg-red-800 p-10 text-white flex flex-col justify-center relative">
+            <div class="w-full md:w-1/2 bg-teal-800 p-10 text-white flex flex-col justify-center relative">
                 <div class="relative z-10">
                     <h2 class="text-3xl font-bold mb-4">SVA Incident Portal</h2>
-                    <p class="text-red-100 mb-6 leading-relaxed">Secure reporting and tracking for student incidents, behavior, and interventions.</p>
+                    <p class="text-teal-100 mb-6 leading-relaxed">Secure reporting, tracking, and intervention management for SVA Faculty & Administration.</p>
                 </div>
             </div>
             <div class="w-full md:w-1/2 p-10 flex flex-col justify-center items-center text-center">
@@ -47,10 +47,10 @@
         <header class="mb-6 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="flex justify-between items-center p-4 border-b border-slate-100">
                 <div>
-                    <h1 class="text-lg font-bold text-red-800">SVA Incident Portal</h1>
-                    <p class="text-xs text-slate-500"><span id="user-display"></span> | Role: <span id="role-display" class="font-bold capitalize"></span></p>
+                    <h1 class="text-xl font-bold text-teal-800">SVA Incident Portal</h1>
+                    <p class="text-xs text-slate-500"><span id="user-display"></span> &bull; Role: <span id="role-display" class="font-bold capitalize text-slate-700"></span></p>
                 </div>
-                <button onclick="logout()" class="text-sm text-slate-500 hover:text-slate-800 transition">Sign Out</button>
+                <button onclick="logout()" class="text-sm font-semibold text-slate-500 hover:text-slate-800 transition">Sign Out</button>
             </div>
             <div class="flex px-2 pt-2 bg-slate-50">
                 <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn active">Student Dashboard</button>
@@ -74,11 +74,11 @@
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-semibold mb-1">Incident Date</label>
+                            <label class="block text-sm font-semibold mb-1 text-slate-700">Incident Date</label>
                             <input type="date" id="incDate" required class="form-input">
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold mb-1">Incident Type</label>
+                            <label class="block text-sm font-semibold mb-1 text-slate-700">Incident Type</label>
                             <select id="incType" required class="form-input">
                                 <option value="" disabled selected>Select...</option>
                                 <option value="Injury">Medical / Injury</option>
@@ -90,36 +90,36 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold mb-1">Location</label>
-                            <input type="text" id="incLocation" required placeholder="e.g., Cafeteria" class="form-input">
+                            <label class="block text-sm font-semibold mb-1 text-slate-700">Location</label>
+                            <input type="text" id="incLocation" required placeholder="e.g., Cafeteria, Playground" class="form-input">
                         </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                        <div class="border border-slate-200 p-4 rounded-lg bg-slate-50">
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Primary Student(s) Involved</label>
-                            <input type="text" id="search-primary" placeholder="Search primary students..." class="form-input text-sm mb-2" oninput="filterCheckboxes(this, 'primary-students-list')">
+                        <div class="border border-slate-200 p-4 rounded-xl bg-slate-50">
+                            <label class="block text-sm font-bold text-slate-800 mb-2">Primary Student(s) Involved</label>
+                            <input type="text" id="search-primary" placeholder="Search primary students..." class="form-input text-sm mb-3" oninput="filterCheckboxes(this, 'primary-students-list')">
                             <div id="primary-students-list" class="student-list space-y-2 text-sm"></div>
                         </div>
-                        <div class="border border-slate-200 p-4 rounded-lg bg-slate-50">
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Witness / Related Student(s)</label>
-                            <input type="text" id="search-related" placeholder="Search related students..." class="form-input text-sm mb-2" oninput="filterCheckboxes(this, 'related-students-list')">
+                        <div class="border border-slate-200 p-4 rounded-xl bg-slate-50">
+                            <label class="block text-sm font-bold text-slate-800 mb-2">Witness / Related Student(s)</label>
+                            <input type="text" id="search-related" placeholder="Search related students..." class="form-input text-sm mb-3" oninput="filterCheckboxes(this, 'related-students-list')">
                             <div id="related-students-list" class="student-list space-y-2 text-sm"></div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold mb-1">Detailed Description</label>
-                        <textarea id="incDescription" required rows="4" placeholder="What happened before, during, and after?" class="form-input"></textarea>
+                        <label class="block text-sm font-semibold mb-1 text-slate-700">Detailed Description</label>
+                        <textarea id="incDescription" required rows="4" placeholder="Objectively detail what happened before, during, and after..." class="form-input"></textarea>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold mb-1">Immediate Action Taken</label>
-                        <textarea id="incAction" required rows="2" placeholder="e.g., Sent to nurse, separated students..." class="form-input"></textarea>
+                        <label class="block text-sm font-semibold mb-1 text-slate-700">Immediate Action Taken</label>
+                        <textarea id="incAction" required rows="2" placeholder="e.g., Escorted to office, applied ice, separated parties..." class="form-input"></textarea>
                     </div>
 
                     <div class="pt-4">
-                        <button type="submit" id="submit-btn" class="w-full bg-red-700 hover:bg-red-800 text-white font-bold py-3 rounded-lg transition">Submit Report</button>
+                        <button type="submit" id="submit-btn" class="w-full bg-teal-700 hover:bg-teal-800 text-white font-bold py-3 rounded-lg shadow-md transition transform active:scale-[0.99]">Submit Official Report</button>
                     </div>
                 </form>
             </div>
@@ -172,7 +172,7 @@
     function populateStudents() {
         let html = '';
         STUDENTS.forEach(s => {
-            html += `<label class="flex items-center space-x-2 py-1"><input type="checkbox" value="${s.name} (${s.id})" class="form-checkbox text-red-600 rounded"><span>${s.name} - ${s.grade}</span></label>`;
+            html += `<label class="flex items-center space-x-2 py-1"><input type="checkbox" value="${s.name} (${s.id})" class="form-checkbox text-teal-600 rounded focus:ring-teal-500"><span>${s.name} <span class="text-slate-400 ml-1 text-xs">Gr.${s.grade}</span></span></label>`;
         });
         document.getElementById('primary-students-list').innerHTML = html || "No assigned students found.";
         document.getElementById('related-students-list').innerHTML = html || "No assigned students found.";
@@ -187,9 +187,6 @@
         }
     }
 
-    // ==========================================
-    // NEW DASHBOARD RENDER LOGIC
-    // ==========================================
     function renderDashboard() {
         const query = document.getElementById('filter-search').value.toLowerCase();
         const feed = document.getElementById('dashboard-feed');
@@ -204,63 +201,88 @@
         let html = '';
         filteredStudents.forEach(s => {
             const studentString = `${s.name} (${s.id})`;
-            
-            // Find all reports involving this student (Primary or Related)
             const studentReports = REPORTS.filter(r => r.primary.includes(studentString) || r.related.includes(studentString));
             
-            // Count incidents by type
+            // Incident Badges
             const counts = {};
             studentReports.forEach(r => counts[r.type] = (counts[r.type] || 0) + 1);
-
-            // Generate badges based on counts
             let badges = '';
             if (Object.keys(counts).length === 0) {
-                badges = `<span class="bg-slate-100 text-slate-500 text-xs font-semibold px-2 py-1 rounded-md">0 Incidents</span>`;
+                badges = `<span class="bg-slate-100 text-slate-500 text-xs font-semibold px-3 py-1 rounded-full border border-slate-200">0 Incidents</span>`;
             } else {
                 for (const [type, count] of Object.entries(counts)) {
-                    badges += `<span class="bg-red-50 border border-red-200 text-red-700 text-xs font-semibold px-2 py-1 rounded-md mr-2">${type}: ${count}</span>`;
+                    badges += `<span class="bg-teal-50 border border-teal-200 text-teal-800 text-xs font-semibold px-3 py-1 rounded-full mr-2">${type}: ${count}</span>`;
                 }
             }
 
-            // Generate the list of reports for the expanded view
+            // Parent Email Logic
+            let parentContactLink = s.parentEmail 
+                ? `<a href="mailto:${s.parentEmail}?subject=SVA School Update regarding ${s.name}" class="text-slate-600 hover:text-teal-700 text-sm font-semibold flex items-center gap-1 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg> Email Parent</a>`
+                : `<span class="text-slate-400 text-xs italic flex items-center gap-1">No parent email on file</span>`;
+
+            // Complete Report Cards for Expanded View
             let reportsHTML = '';
             if (studentReports.length > 0) {
-                reportsHTML = `<div class="mt-4 space-y-2">`;
+                reportsHTML = `<div class="mt-4 space-y-4">`;
                 studentReports.forEach(r => {
-                    let statusColor = r.status === 'Pending Review' ? 'text-yellow-600' : 'text-green-600';
+                    let statusColor = r.status === 'Pending Review' ? 'bg-yellow-100 text-yellow-800 border-yellow-200' : 'bg-green-100 text-green-800 border-green-200';
+                    
                     reportsHTML += `
-                        <div class="bg-white p-3 rounded border border-slate-200 flex justify-between items-center">
-                            <div>
-                                <p class="text-sm font-bold text-slate-800">${r.type} <span class="text-slate-400 font-normal">#${r.id}</span></p>
-                                <p class="text-xs text-slate-500">${r.date} &bull; <span class="font-medium ${statusColor}">${r.status}</span></p>
+                        <div class="bg-white p-5 rounded-lg border border-slate-200 shadow-sm relative">
+                            <div class="flex justify-between items-start mb-4 pb-4 border-b border-slate-100">
+                                <div>
+                                    <h5 class="text-base font-bold text-slate-800">${r.type}</h5>
+                                    <p class="text-xs text-slate-400 mt-1">Report ID: #${r.id}</p>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span class="${statusColor} border text-xs font-bold px-3 py-1 rounded-full">${r.status}</span>
+                                    <button onclick="downloadFormalPDF('${r.id}')" class="text-teal-600 hover:text-teal-800 text-sm font-semibold flex items-center gap-1 bg-teal-50 px-3 py-1 rounded transition hover:bg-teal-100"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> PDF</button>
+                                </div>
                             </div>
-                            <button onclick="downloadFormalPDF('${r.id}')" class="text-blue-600 hover:text-blue-800 text-xs font-semibold underline">Download PDF</button>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6 text-sm mb-4">
+                                <div><strong class="text-slate-500 text-xs uppercase block mb-1">Date</strong> <span class="text-slate-800 font-medium">${r.date}</span></div>
+                                <div><strong class="text-slate-500 text-xs uppercase block mb-1">Location</strong> <span class="text-slate-800 font-medium">${r.location}</span></div>
+                                <div><strong class="text-slate-500 text-xs uppercase block mb-1">Reported By</strong> <span class="text-slate-800 font-medium">${r.reportedBy}</span></div>
+                                <div><strong class="text-slate-500 text-xs uppercase block mb-1">Witnesses/Related</strong> <span class="text-slate-800">${r.related || 'None'}</span></div>
+                            </div>
+
+                            <div class="bg-slate-50 p-4 rounded border border-slate-100 text-sm text-slate-700 mb-3">
+                                <strong class="block mb-2 text-slate-800 text-xs uppercase">Description</strong>
+                                <p class="leading-relaxed">${r.description}</p>
+                            </div>
+                            <div class="bg-slate-50 p-4 rounded border border-slate-100 text-sm text-slate-700 mb-3">
+                                <strong class="block mb-2 text-slate-800 text-xs uppercase">Action Taken</strong>
+                                <p class="leading-relaxed">${r.actionTaken}</p>
+                            </div>
+                            
+                            ${r.comments ? `<div class="bg-teal-50 p-4 rounded border border-teal-100 text-sm text-teal-900"><strong class="block mb-2 text-teal-800 text-xs uppercase">Administrator Note</strong><p class="leading-relaxed">${r.comments}</p></div>` : ''}
                         </div>
                     `;
                 });
                 reportsHTML += `</div>`;
             } else {
-                reportsHTML = `<p class="text-sm text-slate-500 italic mt-3">No incident history for this student.</p>`;
+                reportsHTML = `<div class="bg-white rounded border border-slate-200 p-8 text-center mt-4"><p class="text-slate-500 italic">No incident history recorded for this student.</p></div>`;
             }
 
             // Build Accordion Card
             html += `
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in">
-                    <div class="p-4 cursor-pointer hover:bg-slate-50 transition flex justify-between items-center" onclick="toggleDetails('${s.id}')">
+                    <div class="p-5 cursor-pointer hover:bg-slate-50 transition flex justify-between items-center" onclick="toggleDetails('${s.id}')">
                         <div>
-                            <h3 class="text-lg font-bold text-slate-800">${s.name} <span class="text-slate-400 text-sm font-normal ml-1">Grade ${s.grade}</span></h3>
-                            <div class="mt-2 flex flex-wrap gap-2">${badges}</div>
+                            <h3 class="text-lg font-bold text-slate-800">${s.name} <span class="bg-slate-100 text-slate-500 text-xs px-2 py-0.5 rounded ml-2 align-middle">Grade ${s.grade}</span></h3>
+                            <div class="mt-3 flex flex-wrap gap-2">${badges}</div>
                         </div>
                         <div class="text-slate-400">
                             <svg id="icon-${s.id}" class="w-6 h-6 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                         </div>
                     </div>
                     
-                    <div id="details-${s.id}" class="hidden bg-slate-50 p-4 border-t border-slate-200">
-                        <div class="flex justify-between items-center">
-                            <h4 class="font-bold text-slate-700 text-sm">Incident History</h4>
-                            <button onclick="fileReportForStudent('${studentString}')" class="bg-red-700 text-white text-xs font-bold px-4 py-2 rounded shadow hover:bg-red-800 transition">
-                                + File New Report for Student
+                    <div id="details-${s.id}" class="hidden bg-slate-100/50 p-5 border-t border-slate-200">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-4">
+                            ${parentContactLink}
+                            <button onclick="fileReportForStudent('${studentString}')" class="bg-teal-700 text-white text-sm font-semibold px-4 py-2 rounded shadow hover:bg-teal-800 transition transform active:scale-95 w-full sm:w-auto">
+                                + File Report for ${s.name}
                             </button>
                         </div>
                         ${reportsHTML}
@@ -285,26 +307,19 @@
 
     function fileReportForStudent(studentString) {
         switchTab('report');
-        
-        // Reset Form
         document.getElementById('submission-form').reset();
         
-        // Clear searches and reset lists
         document.getElementById('search-primary').value = '';
         document.getElementById('search-related').value = '';
         filterCheckboxes(document.getElementById('search-primary'), 'primary-students-list');
         filterCheckboxes(document.getElementById('search-related'), 'related-students-list');
 
-        // Uncheck all boxes
         document.querySelectorAll('input[type="checkbox"]').forEach(cb => cb.checked = false);
-        
-        // Check only the specific student in the primary list
         const targetCb = document.querySelector(`#primary-students-list input[value="${studentString}"]`);
         if (targetCb) {
             targetCb.checked = true;
             targetCb.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
-
         window.scrollTo(0, 0);
     }
 
@@ -320,11 +335,10 @@
 
         if(primary.length === 0) return alert("Please select at least one primary student.");
 
-        btn.disabled = true; btn.innerText = "Submitting...";
+        btn.disabled = true; btn.innerText = "Processing...";
 
         fetch(BACKEND_URL, {
-            method: 'POST', mode: 'no-cors',
-            headers: { 'Content-Type': 'application/json' },
+            method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 action: 'submitReport', token: USER_TOKEN,
                 incidentDate: document.getElementById('incDate').value, incidentType: document.getElementById('incType').value,
@@ -332,14 +346,13 @@
                 description: document.getElementById('incDescription').value, actionTaken: document.getElementById('incAction').value
             })
         }).then(() => {
-            alert("Report submitted successfully.");
+            alert("Official Report submitted successfully.");
             document.getElementById('submission-form').reset();
             fetchData(); switchTab('dashboard');
-            btn.disabled = false; btn.innerText = "Submit Report";
+            btn.disabled = false; btn.innerText = "Submit Official Report";
         });
     }
 
-    // Official PDF Generator
     function downloadFormalPDF(reportId) {
         const r = REPORTS.find(rep => rep.id === reportId);
         if (!r) return;
@@ -348,8 +361,8 @@
         printDiv.style.position = 'absolute'; printDiv.style.left = '-9999px'; printDiv.style.top = '0';
         printDiv.innerHTML = `
             <div style="width: 800px; padding: 50px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1e293b; background: #fff;">
-                <div style="text-align: center; border-bottom: 3px solid #b91c1c; padding-bottom: 20px; margin-bottom: 30px;">
-                    <h1 style="font-size: 28px; font-weight: 800; margin: 0; color: #7f1d1d; letter-spacing: 1px;">SVA SCHOOL</h1>
+                <div style="text-align: center; border-bottom: 3px solid #0d9488; padding-bottom: 20px; margin-bottom: 30px;">
+                    <h1 style="font-size: 28px; font-weight: 800; margin: 0; color: #0f766e; letter-spacing: 1px;">SVA SCHOOL</h1>
                     <h2 style="font-size: 16px; margin: 8px 0 0 0; color: #64748b; text-transform: uppercase; letter-spacing: 2px;">Official Incident Report</h2>
                 </div>
                 
@@ -360,7 +373,7 @@
                 </table>
 
                 <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 15px; margin-bottom: 25px; border-radius: 4px;">
-                    <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Reporting Staff / Faculty:</strong> ${r.reportedBy}</p>
+                    <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Reporting Faculty:</strong> ${r.reportedBy}</p>
                     <p style="margin: 0 0 10px 0; font-size: 14px;"><strong>Primary Student(s) Involved:</strong><br> <span style="color: #475569;">${r.primary}</span></p>
                     <p style="margin: 0; font-size: 14px;"><strong>Witness / Related Student(s):</strong><br> <span style="color: #475569;">${r.related || 'None reported'}</span></p>
                 </div>
@@ -375,10 +388,10 @@
                     <p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.actionTaken}</p>
                 </div>
 
-                ${r.comments ? `<div style="margin-bottom: 25px;"><h3 style="font-size: 16px; border-bottom: 2px solid #b91c1c; padding-bottom: 5px; color: #7f1d1d;">Administrative Review Notes</h3><p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.comments}</p></div>` : ''}
+                ${r.comments ? `<div style="margin-bottom: 25px;"><h3 style="font-size: 16px; border-bottom: 2px solid #0d9488; padding-bottom: 5px; color: #0f766e;">Administrative Review Notes</h3><p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.comments}</p></div>` : ''}
 
                 <div style="margin-top: 80px; display: flex; justify-content: space-between;">
-                    <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">Staff Signature</div>
+                    <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">Faculty Signature</div>
                     <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">Administrator Signature</div>
                 </div>
                 
