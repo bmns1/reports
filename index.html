@@ -24,7 +24,7 @@
         .student-list { max-height: 180px; overflow-y: auto; background: #fff; border: 1px solid #cbd5e1; padding: 0.5rem; border-radius: 0.5rem; }
     </style>
 </head>
-<body class="text-slate-800 antialiased">
+<body class="text-slate-800 antialiased relative">
 
     <div id="view-login" class="fixed inset-0 z-50 bg-slate-100 flex items-center justify-center p-4 sm:p-8">
         <div class="bg-white flex flex-col md:flex-row w-full max-w-4xl rounded-2xl shadow-xl overflow-hidden border border-slate-200 fade-in">
@@ -129,6 +129,11 @@
                     </div>
 
                     <div>
+                        <label class="block text-sm font-semibold mb-1 text-slate-700">Student's Initial Response</label>
+                        <textarea id="incStudentResponse" rows="2" placeholder="Detail what the student said or did immediately following the incident..." class="form-input"></textarea>
+                    </div>
+
+                    <div>
                         <label class="block text-sm font-semibold mb-1 text-slate-700">Immediate Action Taken</label>
                         <textarea id="incAction" required rows="2" placeholder="e.g., Escorted to office, applied ice, separated parties..." class="form-input"></textarea>
                     </div>
@@ -140,6 +145,28 @@
             </div>
         </div>
     </div>
+
+    <div id="pdf-edit-modal" class="hidden fixed inset-0 z-[60] bg-slate-900/80 flex items-center justify-center p-4">
+        <div class="bg-slate-200 w-full max-w-4xl max-h-[95vh] flex flex-col rounded-xl overflow-hidden shadow-2xl">
+            <div class="bg-white p-4 border-b border-slate-300 flex justify-between items-center shadow-sm z-10">
+                <div>
+                    <h3 class="font-bold text-slate-800 text-lg">Edit Parent Report</h3>
+                    <p class="text-xs text-slate-500">Click anywhere on the document below to redact or rewrite text before saving.</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="closeEditablePDF()" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded transition">Cancel</button>
+                    <button onclick="saveEditedPDF()" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 text-sm font-bold rounded shadow transition flex items-center gap-2">
+                        Download PDF
+                    </button>
+                </div>
+            </div>
+            <div class="p-8 overflow-y-auto flex justify-center">
+                <div id="editable-pdf-content" contenteditable="true" class="bg-white p-12 shadow-md w-[800px] min-h-[1000px] focus:outline-blue-400">
+                    </div>
+            </div>
+        </div>
+    </div>
+
 <script>
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxJgMn6ad4FbQsK31Ue5TQhG3f-kcL16yX_FeHz-N-sE1cLrro8O92TfNsNQJ4VwfL6Xw/exec"; 
     let USER_TOKEN = "", USER_EMAIL = "", USER_ROLE = "";
@@ -243,8 +270,9 @@
                 }
             }
 
+            // Display plain parent email so teachers can copy it
             let parentContactLink = s.parentEmail 
-                ? `<a href="mailto:${s.parentEmail}?subject=SVA School Update regarding ${s.name}" class="text-slate-600 hover:text-teal-700 text-sm font-semibold flex items-center gap-1 transition"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg> Email Parent</a>`
+                ? `<span class="text-slate-600 text-sm font-semibold flex items-center gap-1"><svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg> Parent Email: <span class="select-all bg-slate-100 px-2 py-1 rounded font-mono">${s.parentEmail}</span></span>`
                 : `<span class="text-slate-400 text-xs italic flex items-center gap-1">No parent email on file</span>`;
 
             let reportsHTML = '';
@@ -253,7 +281,6 @@
                 studentReports.forEach(r => {
                     let statusColor = r.status === 'Pending Review' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : 'bg-green-100 text-green-800 border-green-300';
                     
-                        // --- Admin Edit UI Block ---
                     let adminEditBlock = '';
                     if (USER_ROLE === 'admin') {
                         adminEditBlock = `
@@ -278,7 +305,6 @@
                             </div>
                         `;
                     }
-                    // --------------------------------
 
                     reportsHTML += `
                         <div class="bg-white p-5 rounded-lg border-2 border-red-500 shadow-md relative overflow-hidden">
@@ -289,9 +315,18 @@
                                     <h5 class="text-lg font-extrabold text-red-700">${r.type}</h5>
                                     <p class="text-xs text-slate-400 mt-1">Report ID: #${r.id}</p>
                                 </div>
-                                <div class="flex items-center gap-3">
+                                <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-3">
                                     <span class="${statusColor} border text-xs font-bold px-3 py-1 rounded-full">${r.status}</span>
-                                    <button onclick="downloadFormalPDF('${r.id}')" class="text-slate-600 hover:text-red-700 text-sm font-bold flex items-center gap-1 bg-slate-100 px-3 py-1 rounded transition border border-slate-200 hover:bg-red-50 hover:border-red-200"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Save PDF</button>
+                                    
+                                    <div class="flex gap-2">
+                                        <button onclick="openEditablePDF('${r.id}')" class="text-slate-600 hover:text-teal-700 text-sm font-bold flex items-center gap-1 bg-slate-100 px-3 py-1 rounded transition border border-slate-200 hover:bg-teal-50 hover:border-teal-200">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Edit Parent PDF
+                                        </button>
+                                        
+                                        <button onclick="downloadFormalPDF('${r.id}')" class="text-slate-600 hover:text-red-700 text-sm font-bold flex items-center gap-1 bg-slate-100 px-3 py-1 rounded transition border border-slate-200 hover:bg-red-50 hover:border-red-200">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Internal PDF
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             
@@ -305,6 +340,10 @@
                             <div class="bg-red-50/50 p-4 rounded border border-red-100 text-sm text-slate-800 mb-3 ml-2">
                                 <strong class="block mb-2 text-red-800 text-xs uppercase">Description</strong>
                                 <p class="leading-relaxed">${r.description}</p>
+                            </div>
+                            <div class="bg-red-50/50 p-4 rounded border border-red-100 text-sm text-slate-800 mb-3 ml-2">
+                                <strong class="block mb-2 text-red-800 text-xs uppercase">Student's Initial Response</strong>
+                                <p class="leading-relaxed">${r.studentResponse || 'N/A'}</p>
                             </div>
                             <div class="bg-red-50/50 p-4 rounded border border-red-100 text-sm text-slate-800 mb-3 ml-2">
                                 <strong class="block mb-2 text-red-800 text-xs uppercase">Action Taken</strong>
@@ -401,7 +440,8 @@
                 action: 'submitReport', token: USER_TOKEN,
                 incidentDate: document.getElementById('incDate').value, incidentType: document.getElementById('incType').value,
                 location: document.getElementById('incLocation').value, primaryStudents: primary, relatedStudents: related,
-                description: document.getElementById('incDescription').value, actionTaken: document.getElementById('incAction').value
+                description: document.getElementById('incDescription').value, actionTaken: document.getElementById('incAction').value,
+                studentResponse: document.getElementById('incStudentResponse').value // New Field Sent to Backend
             })
         }).then(() => {
             alert("Official Report submitted successfully.");
@@ -411,7 +451,6 @@
         });
     }
 
-    // --- NEW: Function to send the Admin Update back to the sheet ---
     function updateReportStatus(reportId) {
         const btn = document.getElementById(`btn-update-${reportId}`);
         const newStatus = document.getElementById(`status-${reportId}`).value;
@@ -431,26 +470,21 @@
             })
         }).then(() => {
             alert("Report successfully updated.");
-            fetchData(); // Refresh the feed to show the changes
+            fetchData(); 
         }).catch(() => {
             alert("Error saving the update. Please check your connection.");
             btn.disabled = false;
             btn.innerText = "Save Admin Update";
         });
     }
-    // ----------------------------------------------------------------
 
-    // Official PDF Generator
-    function downloadFormalPDF(reportId) {
-        const r = REPORTS.find(rep => rep.id === reportId);
-        if (!r) return;
+    // ==========================================
+    // PDF GENERATION LOGIC
+    // ==========================================
 
-        const printDiv = document.createElement('div');
-        printDiv.style.position = 'absolute'; 
-        printDiv.style.left = '-9999px'; 
-        printDiv.style.top = '0';
-        
-        printDiv.innerHTML = `
+    // Generates the raw HTML structure for the PDF (used by both PDF functions)
+    function buildPDFHTML(r, isForParent = false) {
+        return `
             <div style="width: 800px; padding: 50px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1e293b; background: #fff;">
                 <div style="text-align: center; border-bottom: 3px solid #0d9488; padding-bottom: 20px; margin-bottom: 30px;">
                     <h1 style="font-size: 28px; font-weight: 800; margin: 0; color: #0f766e; letter-spacing: 1px;">Silicon Valley Academy</h1>
@@ -475,40 +509,85 @@
                 </div>
 
                 <div style="margin-bottom: 25px;">
+                    <h3 style="font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; color: #0f172a;">Student's Initial Response</h3>
+                    <p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.studentResponse || 'N/A'}</p>
+                </div>
+
+                <div style="margin-bottom: 25px;">
                     <h3 style="font-size: 16px; border-bottom: 2px solid #e2e8f0; padding-bottom: 5px; color: #0f172a;">Immediate Action Taken</h3>
                     <p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.actionTaken}</p>
                 </div>
 
-                ${r.comments ? `<div style="margin-bottom: 25px;"><h3 style="font-size: 16px; border-bottom: 2px solid #0d9488; padding-bottom: 5px; color: #0f766e;">Administrative Review Notes</h3><p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.comments}</p></div>` : ''}
+                ${(!isForParent && r.comments) ? `<div style="margin-bottom: 25px;"><h3 style="font-size: 16px; border-bottom: 2px solid #0d9488; padding-bottom: 5px; color: #0f766e;">Administrative Review Notes</h3><p style="font-size: 14px; line-height: 1.6; color: #334155; white-space: pre-wrap;">${r.comments}</p></div>` : ''}
 
                 <div style="margin-top: 80px; display: flex; justify-content: space-between;">
-                    <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">Staff Signature</div>
-                    <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">Administrator Signature</div>
+                    <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">
+                        Staff Signature<br><span style="font-weight: normal; font-size: 12px; color: #64748b;">${r.reportedBy}</span>
+                    </div>
+                    <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">
+                        Administrator Signature<br><span style="font-weight: normal; font-size: 12px; color: #64748b;">Mona Nezzar</span>
+                    </div>
                 </div>
                 
                 <div style="margin-top: 40px; text-align: center; font-size: 10px; color: #94a3b8;">
-                    CONFIDENTIAL - SVA School Internal Records - Generated on ${new Date().toLocaleString()}
+                    CONFIDENTIAL - SVA School Records - Generated on ${new Date().toLocaleString()}
                 </div>
             </div>
         `;
-        
+    }
+
+    // 1. Un-edited Internal PDF
+    function downloadFormalPDF(reportId) {
+        const r = REPORTS.find(rep => rep.id === reportId);
+        if (!r) return;
+
+        const printDiv = document.createElement('div');
+        printDiv.style.position = 'absolute'; 
+        printDiv.style.left = '-9999px'; 
+        printDiv.style.top = '0';
+        printDiv.innerHTML = buildPDFHTML(r, false);
         document.body.appendChild(printDiv);
 
         const opt = {
-            margin: 0, 
-            filename: `SVA_Incident_${reportId}.pdf`, 
-            image: { type: 'jpeg', quality: 1 },
-            html2canvas: { 
-                scale: 2, 
-                useCORS: true,
-                scrollY: 0, 
-                windowY: 0  
-            }, 
+            margin: 0, filename: `SVA_Internal_${reportId}.pdf`, image: { type: 'jpeg', quality: 1 },
+            html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowY: 0 }, 
             jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
 
-        html2pdf().set(opt).from(printDiv.children[0]).save().then(() => { 
-            document.body.removeChild(printDiv); 
+        html2pdf().set(opt).from(printDiv.children[0]).save().then(() => { document.body.removeChild(printDiv); });
+    }
+
+    // 2. Open Modal for Parent PDF
+    let CURRENT_EDIT_REPORT_ID = null;
+    function openEditablePDF(reportId) {
+        const r = REPORTS.find(rep => rep.id === reportId);
+        if (!r) return;
+        CURRENT_EDIT_REPORT_ID = reportId;
+        
+        // Populate the content editable div with the PDF structure (without internal admin notes by default)
+        document.getElementById('editable-pdf-content').innerHTML = buildPDFHTML(r, true);
+        document.getElementById('pdf-edit-modal').classList.remove('hidden');
+    }
+
+    function closeEditablePDF() {
+        document.getElementById('pdf-edit-modal').classList.add('hidden');
+        CURRENT_EDIT_REPORT_ID = null;
+    }
+
+    // 3. Save the Edited PDF directly from the Modal
+    function saveEditedPDF() {
+        const content = document.getElementById('editable-pdf-content');
+        
+        const opt = {
+            margin: 0, filename: `SVA_ParentReport_${CURRENT_EDIT_REPORT_ID}.pdf`, image: { type: 'jpeg', quality: 1 },
+            html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowY: 0 }, 
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
+
+        html2pdf().set(opt).from(content).save().then(() => {
+            closeEditablePDF();
         });
     }
 </script>
+</body>
+</html>
