@@ -233,7 +233,7 @@
                 </div>
             </div>
             <div class="p-8 overflow-y-auto flex justify-center">
-                <div id="editable-pdf-content" contenteditable="true" class="bg-white p-12 shadow-md w-[800px] min-h-[1000px] focus:outline-blue-400">
+                <div id="editable-pdf-content" contenteditable="true" class="bg-white p-12 shadow-md w-[750px] min-h-[1000px] focus:outline-blue-400">
                     </div>
             </div>
         </div>
@@ -691,13 +691,13 @@
     }
 
     // 3. Save the Edited PDF directly from the Modal
+    // 3. Save the Edited PDF directly from the Modal
     function saveEditedPDF() {
         const content = document.getElementById('editable-pdf-content');
         
         const opt = {
-            // 1. ADD MARGINS: This forces the content to scale down slightly to fit 
-            // the page, preventing right-side clipping and centering it visually.
-            margin: [0.3, 0.3], // 0.3 inch margin on all sides
+            // Fixes clipping/centering by adding white space around the content
+            margin: [0.3, 0.3], 
             
             filename: `SVA_ParentReport_${CURRENT_EDIT_REPORT_ID}.pdf`, 
             image: { type: 'jpeg', quality: 0.98 },
@@ -706,8 +706,7 @@
                 scale: 2, 
                 useCORS: true, 
                 scrollY: 0,
-                // 2. SET WINDOW WIDTH: Ensures the capture canvas is wide enough 
-                // so the browser doesn't crop the right side during rendering.
+                // Fixes alignment issues by simulating a wide desktop screen during capture
                 windowWidth: 1000 
             }, 
             jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
