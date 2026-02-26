@@ -468,9 +468,10 @@
                 reportsHTML = `<div class="bg-white rounded border border-slate-200 p-8 text-center mt-4"><p class="text-slate-500 italic">No incident history recorded for this student.</p></div>`;
             }
 
+            // --- KEY FIX: Removed student name from toggleDetails args to prevent apostrophe errors ---
             html += `
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in">
-                    <div class="p-5 cursor-pointer hover:bg-slate-50 transition flex justify-between items-center" onclick="toggleDetails('${s.id}', '${s.name}')">
+                    <div class="p-5 cursor-pointer hover:bg-slate-50 transition flex justify-between items-center" onclick="toggleDetails('${s.id}')">
                         <div>
                             <h3 class="text-lg font-bold text-slate-800">${s.name} <span class="bg-slate-100 text-slate-500 text-xs px-2 py-0.5 rounded ml-2 align-middle">Grade ${s.grade}</span></h3>
                             <div class="mt-3 flex flex-wrap gap-2">${badges}</div>
@@ -496,7 +497,11 @@
         feed.innerHTML = visibleCount > 0 ? html : `<div class="text-slate-500 text-center py-10 bg-white rounded-xl border border-slate-200 shadow-sm">No students match your selected filters.</div>`;
     }
 
-    function toggleDetails(studentId, studentName) {
+    function toggleDetails(studentId) {
+        // --- KEY FIX: Look up the student object securely to get the name ---
+        const student = STUDENTS.find(s => String(s.id) === String(studentId));
+        const studentName = student ? student.name : "Unknown Student";
+
         const details = document.getElementById(`details-${studentId}`);
         const icon = document.getElementById(`icon-${studentId}`);
         
@@ -505,7 +510,7 @@
             details.classList.remove('hidden');
             icon.classList.add('rotate-180');
             
-            // TRACKING LOGIC (Front End Handling)
+            // TRACKING LOGIC
             if (!VIEWED_STUDENTS.has(studentId)) {
                 VIEWED_STUDENTS.add(studentId);
                 
