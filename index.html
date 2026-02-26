@@ -43,6 +43,59 @@
         </div>
     </div>
 
+    <div id="privacy-modal" class="hidden fixed inset-0 z-[70] bg-slate-900/95 flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-3xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+            <div class="bg-red-700 p-6 text-white">
+                <h2 class="text-2xl font-bold flex items-center">
+                    <svg class="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                    Critical Privacy & Compliance
+                </h2>
+                <p class="text-red-100 text-sm mt-1">Zero-Tolerance Policy & Amanah (Sacred Trust)</p>
+            </div>
+            <div class="p-8 overflow-y-auto text-slate-700 text-sm leading-relaxed space-y-6">
+                <p class="font-bold">This portal contains sensitive student data protected by federal law and our religious obligation. Strict adherence to the following is mandatory:</p>
+                
+                <div class="space-y-4">
+                    <div class="bg-red-50 p-4 rounded border-l-4 border-red-600">
+                        <strong class="block text-red-800 text-base mb-1">1. Need-to-Know Access Only</strong>
+                        <p><strong>Rule:</strong> Do not access records for students you are not actively supporting.</p>
+                        <p class="text-slate-500 mt-1"><strong>Reason:</strong> Gossip destroys trust. Just because you can search for a student does not mean you should.</p>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded border-l-4 border-slate-400">
+                        <strong class="block text-slate-800 text-base mb-1">2. "Screen Shield" Protocol</strong>
+                        <p><strong>Rule:</strong> NEVER open this portal when a parent or student is present.</p>
+                        <p class="text-slate-500 mt-1"><strong>Best Practice:</strong> Lock your screen (Win+L / Cmd+Ctrl+Q) before inviting anyone to your desk.</p>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded border-l-4 border-slate-400">
+                        <strong class="block text-slate-800 text-base mb-1">3. Authorization for Parent Discussions</strong>
+                        <p><strong>Rule:</strong> NEVER discuss internal notes/logs with a parent without prior approval from Admin.</p>
+                        <p class="text-slate-500 mt-1"><strong>Reason:</strong> Notes may contain info about witness students that parents are legally not allowed to know.</p>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded border-l-4 border-slate-400">
+                        <strong class="block text-slate-800 text-base mb-1">4. No "Raw" Data Transfer</strong>
+                        <p><strong>Rule:</strong> Never screenshot dashboard or forward internal PDFs.</p>
+                        <p class="text-slate-500 mt-1"><strong>Method:</strong> Only use the "Edit Parent PDF" feature to generate approved documents.</p>
+                    </div>
+
+                    <div class="bg-slate-50 p-4 rounded border-l-4 border-slate-400">
+                        <strong class="block text-slate-800 text-base mb-1">5. Device Hygiene</strong>
+                        <p><strong>Rule:</strong> Never leave your logged-in device unattended. Always Sign Out.</p>
+                    </div>
+                </div>
+
+                <p class="text-xs text-center text-slate-400 border-t pt-4">Violation of these policies is a breach of contract and a betrayal of the trust parents place in us.</p>
+            </div>
+            <div class="p-4 bg-slate-100 border-t border-slate-200 text-right">
+                <button onclick="acceptPrivacyPolicy()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded shadow transition">
+                    I Acknowledge & Agree
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="view-app" class="hidden min-h-screen max-w-5xl mx-auto p-4 sm:p-8">
         <header class="mb-6 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="flex justify-between items-center p-4 border-b border-slate-100">
@@ -171,20 +224,51 @@
     const BACKEND_URL = "https://script.google.com/macros/s/AKfycbxJgMn6ad4FbQsK31Ue5TQhG3f-kcL16yX_FeHz-N-sE1cLrro8O92TfNsNQJ4VwfL6Xw/exec"; 
     let USER_TOKEN = "", USER_EMAIL = "", USER_ROLE = "";
     let STUDENTS = [], MY_STUDENTS = [], REPORTS = [];
+    let ACTIVITY_TIMER;
 
     function handleCredentialResponse(response) {
         USER_TOKEN = response.credential; 
         USER_EMAIL = JSON.parse(atob(response.credential.split('.')[1])).email;
         document.getElementById('view-login').classList.add('hidden');
+        
+        // Show Privacy Modal instead of going straight to app
+        document.getElementById('privacy-modal').classList.remove('hidden');
+    }
+
+    function acceptPrivacyPolicy() {
+        document.getElementById('privacy-modal').classList.add('hidden');
         document.getElementById('view-app').classList.remove('hidden');
         document.getElementById('user-display').innerText = USER_EMAIL;
         fetchData();
+        startActivityTimer();
     }
 
     function logout() {
         USER_TOKEN = ""; USER_EMAIL = "";
         document.getElementById('view-app').classList.add('hidden');
         document.getElementById('view-login').classList.remove('hidden');
+        document.getElementById('privacy-modal').classList.add('hidden');
+        clearTimeout(ACTIVITY_TIMER);
+    }
+
+    // ==========================================
+    // INACTIVITY TIMER LOGIC
+    // ==========================================
+    function startActivityTimer() {
+        resetTimer();
+        window.onmousemove = resetTimer;
+        window.onkeypress = resetTimer;
+        window.onclick = resetTimer;
+        window.onscroll = resetTimer;
+    }
+
+    function resetTimer() {
+        clearTimeout(ACTIVITY_TIMER);
+        // 10 Minutes = 600,000 ms
+        ACTIVITY_TIMER = setTimeout(() => {
+            alert("Session expired due to inactivity. You have been logged out for security.");
+            logout();
+        }, 600000); 
     }
 
     function switchTab(tabName) {
@@ -270,9 +354,8 @@
                 }
             }
 
-            // Display plain parent email so teachers can copy it
             let parentContactLink = s.parentEmail 
-                ? `<span class="text-slate-600 text-sm font-semibold flex items-center gap-1"><svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg> Parent Email: <span class="select-all bg-slate-100 px-2 py-1 rounded font-mono">${s.parentEmail}</span></span>`
+                ? `<span class="text-slate-600 text-sm font-semibold flex items-center gap-1"><svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg> Parent Email: <span class="select-all bg-slate-100 px-2 py-1 rounded font-mono">${s.parentEmail}</span></span>`
                 : `<span class="text-slate-400 text-xs italic flex items-center gap-1">No parent email on file</span>`;
 
             let reportsHTML = '';
@@ -363,7 +446,7 @@
 
             html += `
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in">
-                    <div class="p-5 cursor-pointer hover:bg-slate-50 transition flex justify-between items-center" onclick="toggleDetails('${s.id}')">
+                    <div class="p-5 cursor-pointer hover:bg-slate-50 transition flex justify-between items-center" onclick="toggleDetails('${s.id}', '${s.name}')">
                         <div>
                             <h3 class="text-lg font-bold text-slate-800">${s.name} <span class="bg-slate-100 text-slate-500 text-xs px-2 py-0.5 rounded ml-2 align-middle">Grade ${s.grade}</span></h3>
                             <div class="mt-3 flex flex-wrap gap-2">${badges}</div>
@@ -389,12 +472,29 @@
         feed.innerHTML = visibleCount > 0 ? html : `<div class="text-slate-500 text-center py-10 bg-white rounded-xl border border-slate-200 shadow-sm">No students match your selected filters.</div>`;
     }
 
-    function toggleDetails(studentId) {
+    function toggleDetails(studentId, studentName) {
         const details = document.getElementById(`details-${studentId}`);
         const icon = document.getElementById(`icon-${studentId}`);
+        
+        // Toggle Visibility
         if (details.classList.contains('hidden')) {
             details.classList.remove('hidden');
             icon.classList.add('rotate-180');
+            
+            // TRACKING: Log that the user opened this record
+            fetch(BACKEND_URL, {
+                method: 'POST', 
+                mode: 'no-cors', 
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'trackView', token: USER_TOKEN, studentName: studentName })
+            }).then(res => {
+                // Because of 'no-cors', we can't easily read the JSON response directly here without CORS headers from Google.
+                // However, if we wanted the warning to be instantaneous, we'd need standard CORS. 
+                // For this Google Scripts implementation, we'll assume the backend logs it.
+                // Note: To truly show the warning popup based on backend logic, we'd need to switch 'no-cors' to 'cors' or use a callback.
+                // For now, simpler tracking is implemented.
+            });
+
         } else {
             details.classList.add('hidden');
             icon.classList.remove('rotate-180');
