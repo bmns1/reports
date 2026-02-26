@@ -691,44 +691,54 @@
     }
 
     // 3. Save the Edited PDF (Bulletproof "Clone & Print" Method)
+   // 3. Save the Edited PDF (Fixed Width & Visibility)
     function saveEditedPDF() {
-        // 1. Get the content the user edited
-        const originalContent = document.getElementById('editable-pdf-content');
+        // 1. Get the HTML content the user edited
+        const editorElement = document.getElementById('editable-pdf-content');
+        const contentHTML = editorElement.innerHTML;
         
-        // 2. Create a temporary "Print Container" that is isolated from the screen layout
-        //    We position it absolutely at top-left to ensure coordinates are (0,0)
+        // 2. Create a temporary container for PDF generation
         const printContainer = document.createElement('div');
-        printContainer.innerHTML = originalContent.innerHTML;
+        printContainer.innerHTML = contentHTML;
         
-        // 3. Force specific print styles on this container to match PDF size
-        //    750px width fits comfortably on Letter paper with margins
-        printContainer.style.width = '750px'; 
-        printContainer.style.backgroundColor = '#ffffff';
-        printContainer.style.padding = '40px'; // Hardcoded padding to look like the screen version
+        // 3. IMPORTANT: Override the hardcoded width styles that cause clipping
+        // We find the main wrapper div inside the cloned content
+        const wrapper = printContainer.firstElementChild;
+        if(wrapper) {
+            // Change 800px to 100% so it fits our print container
+            wrapper.style.width = '100%'; 
+            // Reduce padding slightly for print to save space
+            wrapper.style.padding = '40px'; 
+            wrapper.style.boxSizing = 'border-box';
+        }
+
+        // 4. Set up the Print Stage
+        // 750px fits perfectly inside an 8.5" Letter page (approx 816px) with margins
+        printContainer.style.width = '750px';
         printContainer.style.position = 'absolute';
         printContainer.style.top = '0';
         printContainer.style.left = '0';
-        printContainer.style.zIndex = '-1'; // Hide it behind everything
+        printContainer.style.zIndex = '9999'; // Sit on top to ensure it's not "empty"
+        printContainer.style.background = 'white'; 
         
         document.body.appendChild(printContainer);
 
+        // 5. Generate PDF
         const opt = {
-            margin: [0.3, 0.3], // 0.3 inch margins
+            margin: [0.25, 0.25], // 0.25 inch margins
             filename: `SVA_ParentReport_${CURRENT_EDIT_REPORT_ID}.pdf`, 
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: { 
-                scale: 2, // High resolution
+                scale: 2, 
                 useCORS: true, 
                 scrollY: 0,
-                scrollX: 0,
-                windowWidth: 1000 // Trick the renderer into thinking the window is wide
+                // Match the window width to our container to prevent centering errors
+                windowWidth: 750 
             }, 
             jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
 
-        // 4. Print the ISOLATED container, not the one in the modal
         html2pdf().set(opt).from(printContainer).save().then(() => {
-            // 5. Cleanup
             document.body.removeChild(printContainer);
             closeEditablePDF();
         });
