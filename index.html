@@ -106,11 +106,6 @@
                 <p class="text-sm text-slate-600 mb-4 leading-relaxed">
                     You have accessed multiple student records in this session. Please remember the <strong>Need-to-Know</strong> policy.
                 </p>
-                <div class="bg-red-50 p-3 rounded text-left mb-6 border border-red-100">
-                    <p class="text-xs text-red-800">
-                        <strong>Policy:</strong> Do not access records for students you are not actively supporting. Access logs are monitored for compliance.
-                    </p>
-                </div>
                 <button onclick="document.getElementById('warning-modal').classList.add('hidden')" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded shadow transition">
                     I Understand
                 </button>
@@ -147,6 +142,7 @@
                     <option value="Property Damage">Property Damage</option>
                     <option value="Classroom Disruption">Classroom Disruption</option>
                     <option value="Technology Misuse">Technology Misuse</option>
+                    <option value="Rude Parent">Rude/Angery Parent</option>
                     <option value="Other">Other</option>
                 </select>
             </div>
@@ -176,6 +172,7 @@
                                 <option value="Property Damage">Property Damage</option>
                                 <option value="Classroom Disruption">Classroom Disruption</option>
                                 <option value="Technology Misuse">Technology Misuse</option>
+                                <option value="Rude Parent">Rude/Angery Parent</option>
                                 <option value="Other">Other</option>
                             </select>
                         </div>
@@ -247,9 +244,7 @@
     let USER_TOKEN = "", USER_EMAIL = "", USER_ROLE = "";
     let STUDENTS = [], MY_STUDENTS = [], REPORTS = [];
     let ACTIVITY_TIMER;
-    
-    // TRACKING STATE (New)
-    let VIEWED_STUDENTS = new Set(); // Stores unique student IDs viewed in this session
+    let VIEWED_STUDENTS = new Set(); 
 
     function handleCredentialResponse(response) {
         USER_TOKEN = response.credential; 
@@ -268,16 +263,13 @@
 
     function logout() {
         USER_TOKEN = ""; USER_EMAIL = "";
-        VIEWED_STUDENTS.clear(); // Reset tracking on logout
+        VIEWED_STUDENTS.clear(); 
         document.getElementById('view-app').classList.add('hidden');
         document.getElementById('view-login').classList.remove('hidden');
         document.getElementById('privacy-modal').classList.add('hidden');
         clearTimeout(ACTIVITY_TIMER);
     }
 
-    // ==========================================
-    // INACTIVITY TIMER LOGIC
-    // ==========================================
     function startActivityTimer() {
         resetTimer();
         window.onmousemove = resetTimer;
@@ -288,7 +280,6 @@
 
     function resetTimer() {
         clearTimeout(ACTIVITY_TIMER);
-        // 10 Minutes = 600,000 ms
         ACTIVITY_TIMER = setTimeout(() => {
             alert("Session expired due to inactivity. You have been logged out for security.");
             logout();
@@ -314,7 +305,6 @@
                 STUDENTS = data.students; 
                 MY_STUDENTS = data.myStudents || []; 
                 REPORTS = data.reports;
-                
                 document.getElementById('role-display').innerText = USER_ROLE;
                 populateStudents(); 
                 renderDashboard();
@@ -404,7 +394,10 @@
                                         <option value="Reviewed / Resolved" ${r.status === 'Reviewed / Resolved' ? 'selected' : ''}>Reviewed / Resolved</option>
                                         <option value="Escalated" ${r.status === 'Escalated' ? 'selected' : ''}>Escalated</option>
                                     </select>
-                                    <input type="text" id="comments-${r.id}" class="form-input text-sm sm:w-2/3" placeholder="Add new note to the log (optional)...">
+                                    <input type="text" id="comments-${r.id}" class="form-input text-sm sm:w-2/3" placeholder="Add new note to the log...">
+                                </div>
+                                <div class="mt-3">
+                                    <textarea id="private-notes-${r.id}" class="form-input text-sm w-full bg-yellow-50 border-yellow-200" rows="2" placeholder="🔒 Internal Admin Only Notes (Not visible to teachers)...">${r.privateNotes || ''}</textarea>
                                 </div>
                                 <button onclick="updateReportStatus('${r.id}')" id="btn-update-${r.id}" class="mt-3 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold py-2 px-4 rounded transition w-full sm:w-auto">
                                     Save Admin Update
@@ -468,7 +461,6 @@
                 reportsHTML = `<div class="bg-white rounded border border-slate-200 p-8 text-center mt-4"><p class="text-slate-500 italic">No incident history recorded for this student.</p></div>`;
             }
 
-            // --- KEY FIX: Removed student name from toggleDetails args to prevent apostrophe errors ---
             html += `
                 <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in">
                     <div class="p-5 cursor-pointer hover:bg-slate-50 transition flex justify-between items-center" onclick="toggleDetails('${s.id}')">
@@ -498,29 +490,24 @@
     }
 
     function toggleDetails(studentId) {
-        // --- KEY FIX: Look up the student object securely to get the name ---
         const student = STUDENTS.find(s => String(s.id) === String(studentId));
         const studentName = student ? student.name : "Unknown Student";
 
         const details = document.getElementById(`details-${studentId}`);
         const icon = document.getElementById(`icon-${studentId}`);
         
-        // Toggle Visibility
         if (details.classList.contains('hidden')) {
             details.classList.remove('hidden');
             icon.classList.add('rotate-180');
             
-            // TRACKING LOGIC
             if (!VIEWED_STUDENTS.has(studentId)) {
                 VIEWED_STUDENTS.add(studentId);
                 
-                // Trigger Warning if > 2 unique students viewed
                 if (VIEWED_STUDENTS.size > 2) {
                     document.getElementById('warning-modal').classList.remove('hidden');
                 }
             }
 
-            // Always log to backend
             fetch(BACKEND_URL, {
                 method: 'POST', 
                 mode: 'no-cors', 
@@ -588,6 +575,8 @@
         const btn = document.getElementById(`btn-update-${reportId}`);
         const newStatus = document.getElementById(`status-${reportId}`).value;
         const comments = document.getElementById(`comments-${reportId}`).value;
+        // Grab private notes (might be null if user is not admin, so optional chaining or empty string)
+        const privateNotes = document.getElementById(`private-notes-${reportId}`)?.value || "";
 
         btn.disabled = true;
         btn.innerText = "Saving Update...";
@@ -599,7 +588,8 @@
                 token: USER_TOKEN,
                 reportId: reportId,
                 newStatus: newStatus,
-                adminComments: comments
+                adminComments: comments,
+                privateNotes: privateNotes // Send new private note
             })
         }).then(() => {
             alert("Report successfully updated.");
@@ -610,10 +600,6 @@
             btn.innerText = "Save Admin Update";
         });
     }
-
-    // ==========================================
-    // PDF GENERATION LOGIC
-    // ==========================================
 
     function buildPDFHTML(r, isForParent = false) {
         return `
@@ -654,10 +640,12 @@
 
                 <div style="margin-top: 80px; display: flex; justify-content: space-between;">
                     <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">
-                        Staff Signature<br><span style="font-weight: normal; font-size: 12px; color: #64748b;">${r.reportedBy}</span>
+                        Staff Signature<br>
+                        <div style="font-family: 'Brush Script MT', cursive; font-size: 24px; color: #1e293b; margin-top: 5px;">${r.reportedBy}</div>
                     </div>
                     <div style="width: 40%; border-top: 1px solid #000; text-align: center; padding-top: 8px; font-size: 14px; font-weight: 600;">
-                        Administrator Signature<br><span style="font-weight: normal; font-size: 12px; color: #64748b;">Mona Nezzar</span>
+                        Administrator Signature<br>
+                        <div style="font-family: 'Brush Script MT', cursive; font-size: 24px; color: #1e293b; margin-top: 5px;">Mona Nezzar</div>
                     </div>
                 </div>
                 
