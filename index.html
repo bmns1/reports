@@ -690,12 +690,26 @@
         CURRENT_EDIT_REPORT_ID = null;
     }
 
+    // 3. Save the Edited PDF directly from the Modal
     function saveEditedPDF() {
         const content = document.getElementById('editable-pdf-content');
         
         const opt = {
-            margin: 0, filename: `SVA_ParentReport_${CURRENT_EDIT_REPORT_ID}.pdf`, image: { type: 'jpeg', quality: 1 },
-            html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowY: 0 }, 
+            // 1. ADD MARGINS: This forces the content to scale down slightly to fit 
+            // the page, preventing right-side clipping and centering it visually.
+            margin: [0.3, 0.3], // 0.3 inch margin on all sides
+            
+            filename: `SVA_ParentReport_${CURRENT_EDIT_REPORT_ID}.pdf`, 
+            image: { type: 'jpeg', quality: 0.98 },
+            
+            html2canvas: { 
+                scale: 2, 
+                useCORS: true, 
+                scrollY: 0,
+                // 2. SET WINDOW WIDTH: Ensures the capture canvas is wide enough 
+                // so the browser doesn't crop the right side during rendering.
+                windowWidth: 1000 
+            }, 
             jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
 
