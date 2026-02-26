@@ -233,7 +233,7 @@
                 </div>
             </div>
             <div class="p-8 overflow-y-auto flex justify-center">
-                <div id="editable-pdf-content" contenteditable="true" class="bg-white p-12 shadow-md w-[750px] min-h-[1000px] focus:outline-blue-400">
+                <div id="editable-pdf-content" contenteditable="true" class="bg-white p-12 shadow-md w-[850px] min-h-[1000px] focus:outline-blue-400">
                     </div>
             </div>
         </div>
@@ -691,55 +691,16 @@
     }
 
     // 3. Save the Edited PDF (Bulletproof "Clone & Print" Method)
-   // 3. Save the Edited PDF (Fixed Width & Visibility)
-    function saveEditedPDF() {
-        // 1. Get the HTML content the user edited
-        const editorElement = document.getElementById('editable-pdf-content');
-        const contentHTML = editorElement.innerHTML;
+   function saveEditedPDF() {
+        const content = document.getElementById('editable-pdf-content');
         
-        // 2. Create a temporary container for PDF generation
-        const printContainer = document.createElement('div');
-        printContainer.innerHTML = contentHTML;
-        
-        // 3. IMPORTANT: Override the hardcoded width styles that cause clipping
-        // We find the main wrapper div inside the cloned content
-        const wrapper = printContainer.firstElementChild;
-        if(wrapper) {
-            // Change 800px to 100% so it fits our print container
-            wrapper.style.width = '100%'; 
-            // Reduce padding slightly for print to save space
-            wrapper.style.padding = '40px'; 
-            wrapper.style.boxSizing = 'border-box';
-        }
-
-        // 4. Set up the Print Stage
-        // 750px fits perfectly inside an 8.5" Letter page (approx 816px) with margins
-        printContainer.style.width = '750px';
-        printContainer.style.position = 'absolute';
-        printContainer.style.top = '0';
-        printContainer.style.left = '0';
-        printContainer.style.zIndex = '9999'; // Sit on top to ensure it's not "empty"
-        printContainer.style.background = 'white'; 
-        
-        document.body.appendChild(printContainer);
-
-        // 5. Generate PDF
         const opt = {
-            margin: [0.25, 0.25], // 0.25 inch margins
-            filename: `SVA_ParentReport_${CURRENT_EDIT_REPORT_ID}.pdf`, 
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { 
-                scale: 2, 
-                useCORS: true, 
-                scrollY: 0,
-                // Match the window width to our container to prevent centering errors
-                windowWidth: 750 
-            }, 
+            margin: 0, filename: `SVA_ParentReport_${CURRENT_EDIT_REPORT_ID}.pdf`, image: { type: 'jpeg', quality: 1 },
+            html2canvas: { scale: 2, useCORS: true, scrollY: 0, windowY: 0 }, 
             jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
         };
 
-        html2pdf().set(opt).from(printContainer).save().then(() => {
-            document.body.removeChild(printContainer);
+        html2pdf().set(opt).from(content).save().then(() => {
             closeEditablePDF();
         });
     }
