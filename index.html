@@ -96,6 +96,28 @@
         </div>
     </div>
 
+    <div id="warning-modal" class="hidden fixed inset-0 z-[80] bg-red-900/40 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-md rounded-xl shadow-2xl border-t-4 border-red-600 overflow-hidden animate-bounce-once">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+                <h3 class="text-xl font-bold text-slate-900 mb-2">Privacy Reminder</h3>
+                <p class="text-sm text-slate-600 mb-4 leading-relaxed">
+                    You have accessed multiple student records in this session. Please remember the <strong>Need-to-Know</strong> policy.
+                </p>
+                <div class="bg-red-50 p-3 rounded text-left mb-6 border border-red-100">
+                    <p class="text-xs text-red-800">
+                        <strong>Policy:</strong> Do not access records for students you are not actively supporting. Access logs are monitored for compliance.
+                    </p>
+                </div>
+                <button onclick="document.getElementById('warning-modal').classList.add('hidden')" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded shadow transition">
+                    I Understand
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div id="view-app" class="hidden min-h-screen max-w-5xl mx-auto p-4 sm:p-8">
         <header class="mb-6 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
             <div class="flex justify-between items-center p-4 border-b border-slate-100">
@@ -225,13 +247,14 @@
     let USER_TOKEN = "", USER_EMAIL = "", USER_ROLE = "";
     let STUDENTS = [], MY_STUDENTS = [], REPORTS = [];
     let ACTIVITY_TIMER;
+    
+    // TRACKING STATE (New)
+    let VIEWED_STUDENTS = new Set(); // Stores unique student IDs viewed in this session
 
     function handleCredentialResponse(response) {
         USER_TOKEN = response.credential; 
         USER_EMAIL = JSON.parse(atob(response.credential.split('.')[1])).email;
         document.getElementById('view-login').classList.add('hidden');
-        
-        // Show Privacy Modal instead of going straight to app
         document.getElementById('privacy-modal').classList.remove('hidden');
     }
 
@@ -245,6 +268,7 @@
 
     function logout() {
         USER_TOKEN = ""; USER_EMAIL = "";
+        VIEWED_STUDENTS.clear(); // Reset tracking on logout
         document.getElementById('view-app').classList.add('hidden');
         document.getElementById('view-login').classList.remove('hidden');
         document.getElementById('privacy-modal').classList.add('hidden');
@@ -481,18 +505,22 @@
             details.classList.remove('hidden');
             icon.classList.add('rotate-180');
             
-            // TRACKING: Log that the user opened this record
+            // TRACKING LOGIC (Front End Handling)
+            if (!VIEWED_STUDENTS.has(studentId)) {
+                VIEWED_STUDENTS.add(studentId);
+                
+                // Trigger Warning if > 2 unique students viewed
+                if (VIEWED_STUDENTS.size > 2) {
+                    document.getElementById('warning-modal').classList.remove('hidden');
+                }
+            }
+
+            // Always log to backend
             fetch(BACKEND_URL, {
                 method: 'POST', 
                 mode: 'no-cors', 
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'trackView', token: USER_TOKEN, studentName: studentName })
-            }).then(res => {
-                // Because of 'no-cors', we can't easily read the JSON response directly here without CORS headers from Google.
-                // However, if we wanted the warning to be instantaneous, we'd need standard CORS. 
-                // For this Google Scripts implementation, we'll assume the backend logs it.
-                // Note: To truly show the warning popup based on backend logic, we'd need to switch 'no-cors' to 'cors' or use a callback.
-                // For now, simpler tracking is implemented.
             });
 
         } else {
@@ -541,7 +569,7 @@
                 incidentDate: document.getElementById('incDate').value, incidentType: document.getElementById('incType').value,
                 location: document.getElementById('incLocation').value, primaryStudents: primary, relatedStudents: related,
                 description: document.getElementById('incDescription').value, actionTaken: document.getElementById('incAction').value,
-                studentResponse: document.getElementById('incStudentResponse').value // New Field Sent to Backend
+                studentResponse: document.getElementById('incStudentResponse').value 
             })
         }).then(() => {
             alert("Official Report submitted successfully.");
@@ -582,7 +610,6 @@
     // PDF GENERATION LOGIC
     // ==========================================
 
-    // Generates the raw HTML structure for the PDF (used by both PDF functions)
     function buildPDFHTML(r, isForParent = false) {
         return `
             <div style="width: 800px; padding: 50px; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #1e293b; background: #fff;">
@@ -636,7 +663,6 @@
         `;
     }
 
-    // 1. Un-edited Internal PDF
     function downloadFormalPDF(reportId) {
         const r = REPORTS.find(rep => rep.id === reportId);
         if (!r) return;
@@ -657,14 +683,11 @@
         html2pdf().set(opt).from(printDiv.children[0]).save().then(() => { document.body.removeChild(printDiv); });
     }
 
-    // 2. Open Modal for Parent PDF
     let CURRENT_EDIT_REPORT_ID = null;
     function openEditablePDF(reportId) {
         const r = REPORTS.find(rep => rep.id === reportId);
         if (!r) return;
         CURRENT_EDIT_REPORT_ID = reportId;
-        
-        // Populate the content editable div with the PDF structure (without internal admin notes by default)
         document.getElementById('editable-pdf-content').innerHTML = buildPDFHTML(r, true);
         document.getElementById('pdf-edit-modal').classList.remove('hidden');
     }
@@ -674,7 +697,6 @@
         CURRENT_EDIT_REPORT_ID = null;
     }
 
-    // 3. Save the Edited PDF directly from the Modal
     function saveEditedPDF() {
         const content = document.getElementById('editable-pdf-content');
         
