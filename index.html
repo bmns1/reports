@@ -690,33 +690,49 @@
         CURRENT_EDIT_REPORT_ID = null;
     }
 
+    // 3. Save the Edited PDF (Bulletproof "Clone & Print" Method)
     function saveEditedPDF() {
-    const original = document.getElementById('editable-pdf-content');
+        // 1. Get the content the user edited
+        const originalContent = document.getElementById('editable-pdf-content');
+        
+        // 2. Create a temporary "Print Container" that is isolated from the screen layout
+        //    We position it absolutely at top-left to ensure coordinates are (0,0)
+        const printContainer = document.createElement('div');
+        printContainer.innerHTML = originalContent.innerHTML;
+        
+        // 3. Force specific print styles on this container to match PDF size
+        //    750px width fits comfortably on Letter paper with margins
+        printContainer.style.width = '750px'; 
+        printContainer.style.backgroundColor = '#ffffff';
+        printContainer.style.padding = '40px'; // Hardcoded padding to look like the screen version
+        printContainer.style.position = 'absolute';
+        printContainer.style.top = '0';
+        printContainer.style.left = '0';
+        printContainer.style.zIndex = '-1'; // Hide it behind everything
+        
+        document.body.appendChild(printContainer);
 
-    const clone = original.cloneNode(true);
-    clone.style.width = "8.5in";
-    clone.style.padding = "0.5in";
-    clone.style.background = "#fff";
+        const opt = {
+            margin: [0.3, 0.3], // 0.3 inch margins
+            filename: `SVA_ParentReport_${CURRENT_EDIT_REPORT_ID}.pdf`, 
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { 
+                scale: 2, // High resolution
+                useCORS: true, 
+                scrollY: 0,
+                scrollX: 0,
+                windowWidth: 1000 // Trick the renderer into thinking the window is wide
+            }, 
+            jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+        };
 
-    clone.style.position = "absolute";
-    clone.style.left = "-9999px";
-    clone.style.top = "0";
-
-    document.body.appendChild(clone);
-
-    const opt = {
-        margin: 0,
-        filename: `SVA_ParentReport_${CURRENT_EDIT_REPORT_ID}.pdf`,
-        image: { type: 'jpeg', quality: 1 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-    };
-
-    html2pdf().set(opt).from(clone).save().then(() => {
-        document.body.removeChild(clone);
-        closeEditablePDF();
-    });
-}
+        // 4. Print the ISOLATED container, not the one in the modal
+        html2pdf().set(opt).from(printContainer).save().then(() => {
+            // 5. Cleanup
+            document.body.removeChild(printContainer);
+            closeEditablePDF();
+        });
+    }
 </script>
 </body>
 </html>
