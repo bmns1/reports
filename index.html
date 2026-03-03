@@ -7,48 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap" rel="stylesheet">
 
 
 
@@ -163,127 +122,289 @@
 
     
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
-        .fade-in { animation: fadeIn 0.4s ease-out; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        
+        *, *::before, *::after { box-sizing: border-box; }
+        body { font-family: 'DM Sans', sans-serif; background-color: #f1f5f9; }
+
+        /* Animations */
+        .fade-in { animation: fadeIn 0.5s cubic-bezier(0.22, 1, 0.36, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        @keyframes pulseGlow { 0%, 100% { box-shadow: 0 0 0 0 rgba(13,148,136,0.15); } 50% { box-shadow: 0 0 0 8px rgba(13,148,136,0); } }
+        @keyframes slideDown { from { opacity: 0; max-height: 0; } to { opacity: 1; max-height: 2000px; } }
+
+        /* Form Inputs */
         .form-input {
-            width: 100%; padding: 0.75rem 1rem; border-radius: 0.5rem;
-            border: 1px solid #cbd5e1; background-color: #ffffff; transition: all 0.2s;
+            width: 100%; padding: 0.7rem 0.9rem; border-radius: 0.6rem;
+            border: 1.5px solid #e2e8f0; background-color: #ffffff;
+            transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+            font-family: 'DM Sans', sans-serif; font-size: 0.875rem;
         }
-        .form-input:focus { outline: none; border-color: #0d9488; box-shadow: 0 0 0 3px rgba(13, 148, 136, 0.1); }
-        .tab-btn { padding: 0.75rem 1.5rem; font-weight: 600; color: #64748b; border-bottom: 2px solid transparent; transition: all 0.2s; }
-        .tab-btn.active { color: #0d9488; border-bottom: 2px solid #0d9488; }
-        .student-list { max-height: 180px; overflow-y: auto; background: #fff; border: 1px solid #cbd5e1; padding: 0.5rem; border-radius: 0.5rem; }
+        .form-input:focus {
+            outline: none; border-color: #0d9488;
+            box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.08), 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .form-input:hover:not(:focus) { border-color: #cbd5e1; }
+        .form-input::placeholder { color: #94a3b8; }
+
+        /* Tabs */
+        .tab-btn {
+            padding: 0.85rem 1.5rem; font-weight: 600; color: #94a3b8;
+            border-bottom: 2.5px solid transparent; transition: all 0.25s;
+            font-size: 0.875rem; letter-spacing: 0.01em; position: relative;
+            background: transparent; cursor: pointer;
+        }
+        .tab-btn:hover { color: #64748b; }
+        .tab-btn.active { color: #0d9488; border-bottom: 2.5px solid #0d9488; background: rgba(13, 148, 136, 0.03); }
+
+        /* Student checklist */
+        .student-list {
+            max-height: 180px; overflow-y: auto; background: #fff;
+            border: 1.5px solid #e2e8f0; padding: 0.5rem; border-radius: 0.6rem;
+        }
+        .student-list::-webkit-scrollbar { width: 5px; }
+        .student-list::-webkit-scrollbar-track { background: #f8fafc; border-radius: 10px; }
+        .student-list::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        .student-list::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Custom scrollbar for modals */
+        .modal-scroll::-webkit-scrollbar { width: 6px; }
+        .modal-scroll::-webkit-scrollbar-track { background: transparent; }
+        .modal-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        /* Card hover */
+        .student-card {
+            transition: all 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+            border: 1.5px solid #e2e8f0;
+        }
+        .student-card:hover { border-color: #cbd5e1; box-shadow: 0 4px 20px rgba(0,0,0,0.04); }
+
+        /* Report card */
+        .report-card {
+            position: relative; overflow: hidden;
+            border: 1.5px solid #fecaca; border-radius: 0.75rem;
+            background: #fff; transition: all 0.2s;
+        }
+        .report-card::before {
+            content: ''; position: absolute; top: 0; left: 0;
+            width: 3px; height: 100%; background: #dc2626;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: #b91c1c; color: #fff; font-weight: 700; padding: 0.75rem 1.5rem;
+            border-radius: 0.6rem; transition: all 0.2s; border: none; cursor: pointer;
+            box-shadow: 0 1px 3px rgba(185, 28, 28, 0.2);
+        }
+        .btn-primary:hover { background: #991b1b; box-shadow: 0 4px 12px rgba(185, 28, 28, 0.25); transform: translateY(-1px); }
+        .btn-primary:active { transform: translateY(0) scale(0.99); }
+        .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+
+        .btn-dark {
+            background: #1e293b; color: #fff; font-weight: 700; padding: 0.6rem 1.2rem;
+            border-radius: 0.5rem; transition: all 0.2s; border: none; cursor: pointer;
+            font-size: 0.8125rem;
+        }
+        .btn-dark:hover { background: #0f172a; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2); }
+
+        .btn-ghost {
+            background: #f8fafc; color: #475569; font-weight: 600; padding: 0.45rem 0.85rem;
+            border-radius: 0.5rem; transition: all 0.2s; border: 1.5px solid #e2e8f0;
+            font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;
+        }
+        .btn-ghost:hover { background: #f1f5f9; border-color: #cbd5e1; }
+
+        /* Badge */
+        .badge {
+            display: inline-flex; align-items: center; font-size: 0.7rem;
+            font-weight: 700; padding: 0.3rem 0.7rem; border-radius: 9999px;
+            letter-spacing: 0.02em;
+        }
+
+        /* Details expand */
+        .details-panel { animation: slideDown 0.35s cubic-bezier(0.22, 1, 0.36, 1); }
+
+        /* Login decorative pattern */
+        .login-pattern {
+            position: absolute; inset: 0; opacity: 0.07;
+            background-image: radial-gradient(circle at 25% 25%, #fff 1px, transparent 1px),
+                              radial-gradient(circle at 75% 75%, #fff 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* Subtle top-bar accent */
+        .accent-bar {
+            height: 3px; background: linear-gradient(90deg, #0d9488, #14b8a6, #0d9488);
+            background-size: 200% 100%; animation: shimmer 3s ease-in-out infinite;
+        }
+
+        /* Status dot pulse */
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+        .status-dot.pending { background: #eab308; animation: pulseGlow 2s infinite; box-shadow: 0 0 0 0 rgba(234,179,8,0.3); }
+        .status-dot.resolved { background: #22c55e; }
     </style>
 </head>
 <body class="text-slate-800 antialiased relative">
 
+    <!-- ========== LOGIN ========== -->
     <div id="view-login" class="fixed inset-0 z-50 bg-slate-100 flex items-center justify-center p-4 sm:p-8">
-        <div class="bg-white flex flex-col md:flex-row w-full max-w-4xl rounded-2xl shadow-xl overflow-hidden border border-slate-200 fade-in">
-            <div class="w-full md:w-1/2 bg-teal-800 p-10 text-white flex flex-col justify-center relative">
+        <div class="bg-white flex flex-col md:flex-row w-full max-w-4xl rounded-2xl shadow-2xl overflow-hidden border border-slate-200/60 fade-in" style="min-height: 420px;">
+            <!-- Left panel -->
+            <div class="w-full md:w-1/2 bg-teal-800 p-10 md:p-12 text-white flex flex-col justify-center relative overflow-hidden">
+                <div class="login-pattern"></div>
                 <div class="relative z-10">
-                    <h2 class="text-3xl font-bold mb-4">SVA Incident Portal</h2>
-                    <p class="text-teal-100 mb-6 leading-relaxed">Secure reporting, tracking, and intervention management for SVA Faculty & Administration.</p>
+                    <div class="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm rounded-full px-3 py-1.5 mb-6">
+                        <span class="w-2 h-2 bg-emerald-400 rounded-full"></span>
+                        <span class="text-xs font-semibold text-teal-100 tracking-wide uppercase">Secure Portal</span>
+                    </div>
+                    <h2 class="text-3xl md:text-4xl font-extrabold mb-4 leading-tight tracking-tight">SVA Incident<br>Portal</h2>
+                    <p class="text-teal-200 leading-relaxed text-sm">Secure reporting, tracking, and intervention management for SVA Faculty & Administration.</p>
+                    <div class="mt-8 pt-6 border-t border-teal-700/50">
+                        <div class="flex items-center gap-3 text-teal-300 text-xs">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                            <span>FERPA Compliant &bull; End-to-End Encryption</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="w-full md:w-1/2 p-10 flex flex-col justify-center items-center text-center">
-                <h1 class="text-2xl font-bold text-slate-800 mb-2">Secure Sign In</h1>
-                <p class="text-slate-500 mb-8 text-sm">Use your official <strong>@svaschool.org</strong> account.</p>
+            <!-- Right panel -->
+            <div class="w-full md:w-1/2 p-10 md:p-12 flex flex-col justify-center items-center text-center">
+                <div class="w-14 h-14 rounded-2xl bg-teal-50 flex items-center justify-center mb-6">
+                    <svg class="w-7 h-7 text-teal-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path></svg>
+                </div>
+                <h1 class="text-2xl font-extrabold text-slate-800 mb-1.5 tracking-tight">Secure Sign In</h1>
+                <p class="text-slate-500 mb-8 text-sm">Use your official <strong class="text-slate-700">@svaschool.org</strong> account.</p>
                 <div id="g_id_onload" data-client_id="14216824305-v19ecsmrhk1muaglrlhjceqjk5oeqr4n.apps.googleusercontent.com" data-callback="handleCredentialResponse" data-auto_select="false"></div>
                 <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular"></div>
             </div>
         </div>
     </div>
 
+    <!-- ========== PRIVACY MODAL ========== -->
     <div id="privacy-modal" class="hidden fixed inset-0 z-[70] bg-slate-900/95 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-3xl rounded-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-            <div class="bg-red-700 p-6 text-white">
-                <h2 class="text-2xl font-bold flex items-center">
-                    <svg class="w-8 h-8 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
-                    Critical Privacy & Compliance
-                </h2>
-                <p class="text-red-100 text-sm mt-1">Zero-Tolerance Policy & Amanah (Sacred Trust)</p>
+        <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] fade-in">
+            <div class="bg-red-700 p-6 md:p-8 text-white relative overflow-hidden">
+                <div class="absolute inset-0 opacity-10" style="background-image: repeating-linear-gradient(45deg, transparent, transparent 10px, rgba(255,255,255,0.1) 10px, rgba(255,255,255,0.1) 20px);"></div>
+                <div class="relative z-10">
+                    <h2 class="text-2xl font-extrabold flex items-center tracking-tight">
+                        <div class="w-10 h-10 rounded-xl bg-white/15 flex items-center justify-center mr-3 flex-shrink-0">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                        </div>
+                        Critical Privacy & Compliance
+                    </h2>
+                    <p class="text-red-200 text-sm mt-2 ml-[52px]">Zero-Tolerance Policy & Amanah (Sacred Trust)</p>
+                </div>
             </div>
-            <div class="p-8 overflow-y-auto text-slate-700 text-sm leading-relaxed space-y-6">
-                <p class="font-bold">This portal contains sensitive student data protected by federal law and our religious obligation. Strict adherence to the following is mandatory:</p>
+            <div class="p-6 md:p-8 overflow-y-auto modal-scroll text-slate-700 text-sm leading-relaxed space-y-4">
+                <p class="font-bold text-slate-900">This portal contains sensitive student data protected by federal law and our religious obligation. Strict adherence to the following is mandatory:</p>
                 
-                <div class="space-y-4">
-                    <div class="bg-red-50 p-4 rounded border-l-4 border-red-600">
-                        <strong class="block text-red-800 text-base mb-1">1. Need-to-Know Access Only</strong>
-                        <p><strong>Rule:</strong> Do not access records for students you are not actively supporting.</p>
-                        <p class="text-slate-500 mt-1"><strong>Reason:</strong> Gossip destroys trust. Just because you can search for a student does not mean you should.</p>
+                <div class="space-y-3">
+                    <div class="bg-red-50 p-4 rounded-xl border border-red-200">
+                        <strong class="block text-red-800 text-base mb-1 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-red-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">1</span>
+                            Need-to-Know Access Only
+                        </strong>
+                        <p class="ml-8"><strong>Rule:</strong> Do not access records for students you are not actively supporting.</p>
+                        <p class="text-slate-500 mt-1 ml-8"><strong>Reason:</strong> Gossip destroys trust. Just because you can search for a student does not mean you should.</p>
                     </div>
 
-                    <div class="bg-slate-50 p-4 rounded border-l-4 border-slate-400">
-                        <strong class="block text-slate-800 text-base mb-1">2. "Screen Shield" Protocol</strong>
-                        <p><strong>Rule:</strong> NEVER open this portal when a parent or student is present.</p>
-                        <p class="text-slate-500 mt-1"><strong>Best Practice:</strong> Lock your screen (Win+L / Cmd+Ctrl+Q) before inviting anyone to your desk.</p>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <strong class="block text-slate-800 text-base mb-1 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-slate-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">2</span>
+                            "Screen Shield" Protocol
+                        </strong>
+                        <p class="ml-8"><strong>Rule:</strong> NEVER open this portal when a parent or student is present.</p>
+                        <p class="text-slate-500 mt-1 ml-8"><strong>Best Practice:</strong> Lock your screen (Win+L / Cmd+Ctrl+Q) before inviting anyone to your desk.</p>
                     </div>
 
-                    <div class="bg-slate-50 p-4 rounded border-l-4 border-slate-400">
-                        <strong class="block text-slate-800 text-base mb-1">3. Authorization for Parent Discussions</strong>
-                        <p><strong>Rule:</strong> NEVER discuss internal notes/logs with a parent without prior approval from Admin.</p>
-                        <p class="text-slate-500 mt-1"><strong>Reason:</strong> Notes may contain info about witness students that parents are legally not allowed to know.</p>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <strong class="block text-slate-800 text-base mb-1 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-slate-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">3</span>
+                            Authorization for Parent Discussions
+                        </strong>
+                        <p class="ml-8"><strong>Rule:</strong> NEVER discuss internal notes/logs with a parent without prior approval from Admin.</p>
+                        <p class="text-slate-500 mt-1 ml-8"><strong>Reason:</strong> Notes may contain info about witness students that parents are legally not allowed to know.</p>
                     </div>
 
-                    <div class="bg-slate-50 p-4 rounded border-l-4 border-slate-400">
-                        <strong class="block text-slate-800 text-base mb-1">4. No "Raw" Data Transfer</strong>
-                        <p><strong>Rule:</strong> Never screenshot dashboard or forward internal PDFs.</p>
-                        <p class="text-slate-500 mt-1"><strong>Method:</strong> Only use the "Edit Parent PDF" feature to generate approved documents.</p>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <strong class="block text-slate-800 text-base mb-1 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-slate-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">4</span>
+                            No "Raw" Data Transfer
+                        </strong>
+                        <p class="ml-8"><strong>Rule:</strong> Never screenshot dashboard or forward internal PDFs.</p>
+                        <p class="text-slate-500 mt-1 ml-8"><strong>Method:</strong> Only use the "Edit Parent PDF" feature to generate approved documents.</p>
                     </div>
 
-                    <div class="bg-slate-50 p-4 rounded border-l-4 border-slate-400">
-                        <strong class="block text-slate-800 text-base mb-1">5. Device Hygiene</strong>
-                        <p><strong>Rule:</strong> Never leave your logged-in device unattended. Always Sign Out.</p>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <strong class="block text-slate-800 text-base mb-1 flex items-center gap-2">
+                            <span class="w-6 h-6 rounded-lg bg-slate-600 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">5</span>
+                            Device Hygiene
+                        </strong>
+                        <p class="ml-8"><strong>Rule:</strong> Never leave your logged-in device unattended. Always Sign Out.</p>
                     </div>
                 </div>
 
                 <p class="text-xs text-center text-slate-400 border-t pt-4">Violation of these policies is a breach of contract and a betrayal of the trust parents place in us.</p>
             </div>
-            <div class="p-4 bg-slate-100 border-t border-slate-200 text-right">
-                <button onclick="acceptPrivacyPolicy()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold py-3 px-8 rounded shadow transition">
+            <div class="p-4 md:p-5 bg-slate-50 border-t border-slate-200 text-right">
+                <button onclick="acceptPrivacyPolicy()" class="btn-dark py-3 px-8 text-sm rounded-lg">
                     I Acknowledge & Agree
                 </button>
             </div>
         </div>
     </div>
 
+    <!-- ========== WARNING MODAL ========== -->
     <div id="warning-modal" class="hidden fixed inset-0 z-[80] bg-red-900/40 flex items-center justify-center p-4 backdrop-blur-sm">
-        <div class="bg-white w-full max-w-md rounded-xl shadow-2xl border-t-4 border-red-600 overflow-hidden animate-bounce-once">
-            <div class="p-6 text-center">
-                <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl border-t-4 border-red-600 overflow-hidden fade-in">
+            <div class="p-8 text-center">
+                <div class="w-16 h-16 bg-red-50 rounded-2xl flex items-center justify-center mx-auto mb-5 border border-red-100">
                     <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                 </div>
-                <h3 class="text-xl font-bold text-slate-900 mb-2">Privacy Reminder</h3>
-                <p class="text-sm text-slate-600 mb-4 leading-relaxed">
+                <h3 class="text-xl font-extrabold text-slate-900 mb-2 tracking-tight">Privacy Reminder</h3>
+                <p class="text-sm text-slate-600 mb-6 leading-relaxed">
                     You have accessed multiple student records in this session. Please remember the <strong>Need-to-Know</strong> policy.
                 </p>
-                <button onclick="document.getElementById('warning-modal').classList.add('hidden')" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded shadow transition">
+                <button onclick="document.getElementById('warning-modal').classList.add('hidden')" class="w-full btn-dark py-2.5 rounded-lg">
                     I Understand
                 </button>
             </div>
         </div>
     </div>
 
-    <div id="view-app" class="hidden min-h-screen max-w-5xl mx-auto p-4 sm:p-8">
-        <header class="mb-6 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="flex justify-between items-center p-4 border-b border-slate-100">
-                <div>
-                    <h1 class="text-xl font-bold text-teal-800">SVA Incident Portal</h1>
-                    <p class="text-xs text-slate-500"><span id="user-display"></span> &bull; Role: <span id="role-display" class="font-bold capitalize text-slate-700"></span></p>
+    <!-- ========== MAIN APP ========== -->
+    <div id="view-app" class="hidden min-h-screen max-w-5xl mx-auto p-4 sm:p-6 lg:p-8">
+
+        <!-- Header -->
+        <header class="mb-6 bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden">
+            <div class="accent-bar"></div>
+            <div class="flex justify-between items-center p-4 md:px-6">
+                <div class="flex items-center gap-3">
+                    <div class="w-9 h-9 rounded-xl bg-teal-700 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    </div>
+                    <div>
+                        <h1 class="text-lg font-extrabold text-teal-800 tracking-tight">SVA Incident Portal</h1>
+                        <p class="text-xs text-slate-500"><span id="user-display"></span> &bull; <span id="role-display" class="font-bold capitalize text-slate-700"></span></p>
+                    </div>
                 </div>
-                <button onclick="logout()" class="text-sm font-semibold text-slate-500 hover:text-slate-800 transition">Sign Out</button>
+                <button onclick="logout()" class="btn-ghost text-xs">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    Sign Out
+                </button>
             </div>
-            <div class="flex px-2 pt-2 bg-slate-50">
+            <div class="flex px-4 md:px-6 bg-slate-50/80 border-t border-slate-100">
                 <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="tab-btn active">Student Dashboard</button>
                 <button onclick="switchTab('report')" id="tab-btn-report" class="tab-btn">File New Report</button>
             </div>
         </header>
 
+        <!-- Dashboard Tab -->
         <div id="tab-dashboard" class="fade-in">
-            <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6 flex flex-col md:flex-row gap-4">
-                <input type="text" id="filter-search" placeholder="Search students by name..." class="form-input text-sm md:w-2/3" oninput="renderDashboard()">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-4 mb-6 flex flex-col md:flex-row gap-3">
+                <div class="relative md:w-2/3">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    <input type="text" id="filter-search" placeholder="Search students by name..." class="form-input text-sm pl-9" oninput="renderDashboard()">
+                </div>
                 <select id="filter-type" class="form-input text-sm md:w-1/3 font-semibold text-slate-700" onchange="renderDashboard()">
                     <option value="all">View All Students</option>
                     <option value="any_report">Only Students w/ Reports</option>
@@ -299,23 +420,30 @@
                     <option value="Other">Other</option>
                 </select>
             </div>
-            <div id="dashboard-feed" class="space-y-4 pb-10">
-                <div class="text-center py-10 text-slate-500">Loading student records...</div>
+            <div id="dashboard-feed" class="space-y-3 pb-10">
+                <div class="text-center py-16 text-slate-400">
+                    <svg class="w-8 h-8 mx-auto mb-3 animate-spin text-teal-600" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                    <p class="text-sm font-medium">Loading student records...</p>
+                </div>
             </div>
         </div>
 
+        <!-- Report Tab -->
         <div id="tab-report" class="hidden fade-in">
-            <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 sm:p-8">
-                <h2 class="text-2xl font-bold text-slate-800 mb-6">File Incident Report</h2>
-                <form id="submission-form" onsubmit="submitReport(event)" class="space-y-5">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 p-6 sm:p-8 lg:p-10">
+                <div class="mb-8">
+                    <h2 class="text-2xl font-extrabold text-slate-800 tracking-tight">File Incident Report</h2>
+                    <p class="text-sm text-slate-500 mt-1">Complete all required fields accurately and objectively.</p>
+                </div>
+                <form id="submission-form" onsubmit="submitReport(event)" class="space-y-6">
                     
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
-                            <label class="block text-sm font-semibold mb-1 text-slate-700">Incident Date</label>
+                            <label class="block text-xs font-bold mb-1.5 text-slate-600 uppercase tracking-wider">Incident Date</label>
                             <input type="date" id="incDate" required class="form-input">
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold mb-1 text-slate-700">Incident Type</label>
+                            <label class="block text-xs font-bold mb-1.5 text-slate-600 uppercase tracking-wider">Incident Type</label>
                             <select id="incType" required class="form-input text-red-700 font-semibold">
                                 <option value="" disabled selected>Select...</option>
                                 <option value="Injury">Medical / Injury</option>
@@ -330,64 +458,66 @@
                             </select>
                         </div>
                         <div>
-                            <label class="block text-sm font-semibold mb-1 text-slate-700">Location</label>
+                            <label class="block text-xs font-bold mb-1.5 text-slate-600 uppercase tracking-wider">Location</label>
                             <input type="text" id="incLocation" required placeholder="e.g., Cafeteria, Playground" class="form-input">
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
-                        <div class="border border-slate-200 p-4 rounded-xl bg-slate-50">
-                            <label class="block text-sm font-bold text-slate-800 mb-2">Primary Student(s) Involved</label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-2">
+                        <div class="border border-slate-200 p-4 rounded-xl bg-slate-50/70">
+                            <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">Primary Student(s) Involved</label>
                             <input type="text" id="search-primary" placeholder="Search primary students..." class="form-input text-sm mb-3" oninput="filterCheckboxes(this, 'primary-students-list')">
                             <div id="primary-students-list" class="student-list space-y-2 text-sm"></div>
                         </div>
-                        <div class="border border-slate-200 p-4 rounded-xl bg-slate-50">
-                            <label class="block text-sm font-bold text-slate-800 mb-2">Witness / Related Student(s)</label>
+                        <div class="border border-slate-200 p-4 rounded-xl bg-slate-50/70">
+                            <label class="block text-xs font-bold text-slate-700 mb-2 uppercase tracking-wider">Witness / Related Student(s)</label>
                             <input type="text" id="search-related" placeholder="Search related students..." class="form-input text-sm mb-3" oninput="filterCheckboxes(this, 'related-students-list')">
                             <div id="related-students-list" class="student-list space-y-2 text-sm"></div>
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold mb-1 text-slate-700">Detailed Description</label>
+                        <label class="block text-xs font-bold mb-1.5 text-slate-600 uppercase tracking-wider">Detailed Description</label>
                         <textarea id="incDescription" required rows="4" placeholder="Objectively detail what happened before, during, and after..." class="form-input"></textarea>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold mb-1 text-slate-700">Student's Initial Response</label>
+                        <label class="block text-xs font-bold mb-1.5 text-slate-600 uppercase tracking-wider">Student's Initial Response</label>
                         <textarea id="incStudentResponse" rows="2" placeholder="Detail what the student said or did immediately following the incident..." class="form-input"></textarea>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold mb-1 text-slate-700">Immediate Action Taken</label>
+                        <label class="block text-xs font-bold mb-1.5 text-slate-600 uppercase tracking-wider">Immediate Action Taken</label>
                         <textarea id="incAction" required rows="2" placeholder="e.g., Escorted to office, applied ice, separated parties..." class="form-input"></textarea>
                     </div>
 
-                    <div class="pt-4">
-                        <button type="submit" id="submit-btn" class="w-full bg-red-700 hover:bg-red-800 text-white font-bold py-3 rounded-lg shadow-md transition transform active:scale-[0.99]">Submit Official Report</button>
+                    <div class="pt-2">
+                        <button type="submit" id="submit-btn" class="btn-primary w-full py-3.5 text-sm rounded-xl">Submit Official Report</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
 
-    <div id="pdf-edit-modal" class="hidden fixed inset-0 z-[60] bg-slate-900/80 flex items-center justify-center p-4">
-        <div class="bg-slate-200 w-full max-w-4xl max-h-[95vh] flex flex-col rounded-xl overflow-hidden shadow-2xl">
-            <div class="bg-white p-4 border-b border-slate-300 flex justify-between items-center shadow-sm z-10">
+    <!-- ========== PDF EDIT MODAL ========== -->
+    <div id="pdf-edit-modal" class="hidden fixed inset-0 z-[60] bg-slate-900/80 flex items-center justify-center p-4 backdrop-blur-sm">
+        <div class="bg-slate-200 w-full max-w-4xl max-h-[95vh] flex flex-col rounded-2xl overflow-hidden shadow-2xl fade-in">
+            <div class="bg-white p-4 md:px-6 border-b border-slate-200 flex justify-between items-center shadow-sm z-10">
                 <div>
-                    <h3 class="font-bold text-slate-800 text-lg">Edit Parent Report</h3>
-                    <p class="text-xs text-slate-500">Click anywhere on the document below to redact or rewrite text before saving.</p>
+                    <h3 class="font-extrabold text-slate-800 text-lg tracking-tight">Edit Parent Report</h3>
+                    <p class="text-xs text-slate-500 mt-0.5">Click anywhere on the document below to redact or rewrite text before saving.</p>
                 </div>
                 <div class="flex gap-3">
-                    <button onclick="closeEditablePDF()" class="px-4 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100 rounded transition">Cancel</button>
-                    <button onclick="saveEditedPDF()" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 text-sm font-bold rounded shadow transition flex items-center gap-2">
+                    <button onclick="closeEditablePDF()" class="btn-ghost">Cancel</button>
+                    <button onclick="saveEditedPDF()" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 text-sm font-bold rounded-lg shadow transition flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                         Download PDF
                     </button>
                 </div>
             </div>
-            <div class="p-8 overflow-y-auto flex justify-center">
+            <div class="p-8 overflow-y-auto modal-scroll flex justify-center">
                 <div id="editable-pdf-content" contenteditable="true" class="bg-white p-12 shadow-md w-[850px] min-h-[1000px] focus:outline-blue-400">
-                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -514,28 +644,29 @@
             studentReports.forEach(r => counts[r.type] = (counts[r.type] || 0) + 1);
             let badges = '';
             if (Object.keys(counts).length === 0) {
-                badges = `<span class="bg-slate-100 text-slate-500 text-xs font-semibold px-3 py-1 rounded-full border border-slate-200">0 Incidents</span>`;
+                badges = `<span class="badge bg-slate-100 text-slate-500 border border-slate-200">0 Incidents</span>`;
             } else {
                 for (const [type, count] of Object.entries(counts)) {
-                    badges += `<span class="bg-red-100 border border-red-200 text-red-800 text-xs font-bold px-3 py-1 rounded-full mr-2 shadow-sm">${type}: ${count}</span>`;
+                    badges += `<span class="badge bg-red-50 border border-red-200 text-red-700 mr-1.5">${type}: ${count}</span>`;
                 }
             }
 
             let parentContactLink = s.parentEmail 
-                ? `<span class="text-slate-600 text-sm font-semibold flex items-center gap-1"><svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg> Parent Email: <span class="select-all bg-slate-100 px-2 py-1 rounded font-mono">${s.parentEmail}</span></span>`
+                ? `<span class="text-slate-600 text-sm font-semibold flex items-center gap-1.5"><svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg> Parent: <span class="select-all bg-slate-100 px-2 py-0.5 rounded font-mono text-xs">${s.parentEmail}</span></span>`
                 : `<span class="text-slate-400 text-xs italic flex items-center gap-1">No parent email on file</span>`;
 
             let reportsHTML = '';
             if (studentReports.length > 0) {
-                reportsHTML = `<div class="mt-4 space-y-4">`;
+                reportsHTML = `<div class="mt-4 space-y-3">`;
                 studentReports.forEach(r => {
-                    let statusColor = r.status === 'Pending Review' ? 'bg-yellow-100 text-yellow-800 border-yellow-300' : 'bg-green-100 text-green-800 border-green-300';
+                    let statusColor = r.status === 'Pending Review' ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                    let statusDot = r.status === 'Pending Review' ? 'pending' : 'resolved';
                     
                     let adminEditBlock = '';
                     if (USER_ROLE === 'admin') {
                         adminEditBlock = `
-                            <div class="mt-4 bg-slate-50 p-4 rounded border border-slate-200 ml-2">
-                                <strong class="block mb-2 text-slate-700 text-xs uppercase">Admin Update Portal</strong>
+                            <div class="mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <strong class="block mb-2.5 text-slate-500 text-xs uppercase tracking-wider font-bold">Admin Update Portal</strong>
                                 <div class="flex flex-col sm:flex-row gap-3">
                                     <select id="status-${r.id}" class="form-input text-sm sm:w-1/3">
                                         <option value="Pending Review" ${r.status === 'Pending Review' ? 'selected' : ''}>Pending Review</option>
@@ -550,9 +681,9 @@
                                     <input type="text" id="comments-${r.id}" class="form-input text-sm sm:w-2/3" placeholder="Add new note to the log...">
                                 </div>
                                 <div class="mt-3">
-                                    <textarea id="private-notes-${r.id}" class="form-input text-sm w-full bg-yellow-50 border-yellow-200" rows="2" placeholder="🔒 Internal Admin Only Notes (Not visible to teachers)...">${r.privateNotes || ''}</textarea>
+                                    <textarea id="private-notes-${r.id}" class="form-input text-sm w-full bg-amber-50/60 border-amber-200" rows="2" placeholder="&#128274; Internal Admin Only Notes (Not visible to teachers)...">${r.privateNotes || ''}</textarea>
                                 </div>
-                                <button onclick="updateReportStatus('${r.id}')" id="btn-update-${r.id}" class="mt-3 bg-slate-800 hover:bg-slate-900 text-white text-sm font-bold py-2 px-4 rounded transition w-full sm:w-auto">
+                                <button onclick="updateReportStatus('${r.id}')" id="btn-update-${r.id}" class="mt-3 btn-dark w-full sm:w-auto">
                                     Save Admin Update
                                 </button>
                             </div>
@@ -560,50 +691,53 @@
                     }
 
                     reportsHTML += `
-                        <div class="bg-white p-5 rounded-lg border-2 border-red-500 shadow-md relative overflow-hidden">
-                            <div class="absolute top-0 left-0 w-2 h-full bg-red-600"></div>
-                            
-                            <div class="flex justify-between items-start mb-4 pb-4 border-b border-red-100 pl-2">
+                        <div class="report-card p-5">
+                            <div class="flex justify-between items-start mb-4 pb-3 border-b border-red-100/80 pl-2">
                                 <div>
-                                    <h5 class="text-lg font-extrabold text-red-700">${r.type}</h5>
-                                    <p class="text-xs text-slate-400 mt-1">Report ID: #${r.id}</p>
+                                    <h5 class="text-base font-extrabold text-red-700 tracking-tight">${r.type}</h5>
+                                    <p class="text-xs text-slate-400 mt-0.5 font-medium">Report ID: #${r.id}</p>
                                 </div>
                                 <div class="flex flex-col sm:flex-row items-end sm:items-center gap-2 sm:gap-3">
-                                    <span class="${statusColor} border text-xs font-bold px-3 py-1 rounded-full">${r.status}</span>
+                                    <span class="${statusColor} border text-xs font-bold px-3 py-1 rounded-full inline-flex items-center gap-1.5">
+                                        <span class="status-dot ${statusDot}"></span>
+                                        ${r.status}
+                                    </span>
                                     
                                     <div class="flex gap-2">
-                                        <button onclick="openEditablePDF('${r.id}')" class="text-slate-600 hover:text-teal-700 text-sm font-bold flex items-center gap-1 bg-slate-100 px-3 py-1 rounded transition border border-slate-200 hover:bg-teal-50 hover:border-teal-200">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Edit Parent PDF
+                                        <button onclick="openEditablePDF('${r.id}')" class="btn-ghost text-xs hover:text-teal-700 hover:bg-teal-50 hover:border-teal-200">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg> Edit Parent PDF
                                         </button>
                                         
-                                        <button onclick="downloadFormalPDF('${r.id}')" class="text-slate-600 hover:text-red-700 text-sm font-bold flex items-center gap-1 bg-slate-100 px-3 py-1 rounded transition border border-slate-200 hover:bg-red-50 hover:border-red-200">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Internal PDF
+                                        <button onclick="downloadFormalPDF('${r.id}')" class="btn-ghost text-xs hover:text-red-700 hover:bg-red-50 hover:border-red-200">
+                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg> Internal PDF
                                         </button>
                                     </div>
                                 </div>
                             </div>
                             
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6 text-sm mb-4 pl-2">
-                                <div><strong class="text-slate-500 text-xs uppercase block mb-1">Date</strong> <span class="text-slate-800 font-medium">${r.date}</span></div>
-                                <div><strong class="text-slate-500 text-xs uppercase block mb-1">Location</strong> <span class="text-slate-800 font-medium">${r.location}</span></div>
-                                <div><strong class="text-slate-500 text-xs uppercase block mb-1">Reported By</strong> <span class="text-slate-800 font-medium">${r.reportedBy}</span></div>
-                                <div><strong class="text-slate-500 text-xs uppercase block mb-1">Witnesses/Related</strong> <span class="text-slate-800">${r.related || 'None'}</span></div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-y-2.5 gap-x-6 text-sm mb-4 pl-2">
+                                <div><strong class="text-slate-400 text-[10px] uppercase tracking-wider block mb-0.5 font-bold">Date</strong> <span class="text-slate-800 font-medium">${r.date}</span></div>
+                                <div><strong class="text-slate-400 text-[10px] uppercase tracking-wider block mb-0.5 font-bold">Location</strong> <span class="text-slate-800 font-medium">${r.location}</span></div>
+                                <div><strong class="text-slate-400 text-[10px] uppercase tracking-wider block mb-0.5 font-bold">Reported By</strong> <span class="text-slate-800 font-medium">${r.reportedBy}</span></div>
+                                <div><strong class="text-slate-400 text-[10px] uppercase tracking-wider block mb-0.5 font-bold">Witnesses/Related</strong> <span class="text-slate-800">${r.related || 'None'}</span></div>
                             </div>
 
-                            <div class="bg-red-50/50 p-4 rounded border border-red-100 text-sm text-slate-800 mb-3 ml-2">
-                                <strong class="block mb-2 text-red-800 text-xs uppercase">Description</strong>
-                                <p class="leading-relaxed">${r.description}</p>
-                            </div>
-                            <div class="bg-red-50/50 p-4 rounded border border-red-100 text-sm text-slate-800 mb-3 ml-2">
-                                <strong class="block mb-2 text-red-800 text-xs uppercase">Student's Initial Response</strong>
-                                <p class="leading-relaxed">${r.studentResponse || 'N/A'}</p>
-                            </div>
-                            <div class="bg-red-50/50 p-4 rounded border border-red-100 text-sm text-slate-800 mb-3 ml-2">
-                                <strong class="block mb-2 text-red-800 text-xs uppercase">Action Taken</strong>
-                                <p class="leading-relaxed">${r.actionTaken}</p>
+                            <div class="space-y-2.5 pl-2">
+                                <div class="bg-red-50/60 p-3.5 rounded-lg border border-red-100 text-sm text-slate-800">
+                                    <strong class="block mb-1.5 text-red-700 text-[10px] uppercase tracking-wider font-bold">Description</strong>
+                                    <p class="leading-relaxed">${r.description}</p>
+                                </div>
+                                <div class="bg-red-50/60 p-3.5 rounded-lg border border-red-100 text-sm text-slate-800">
+                                    <strong class="block mb-1.5 text-red-700 text-[10px] uppercase tracking-wider font-bold">Student's Initial Response</strong>
+                                    <p class="leading-relaxed">${r.studentResponse || 'N/A'}</p>
+                                </div>
+                                <div class="bg-red-50/60 p-3.5 rounded-lg border border-red-100 text-sm text-slate-800">
+                                    <strong class="block mb-1.5 text-red-700 text-[10px] uppercase tracking-wider font-bold">Action Taken</strong>
+                                    <p class="leading-relaxed">${r.actionTaken}</p>
+                                </div>
                             </div>
                             
-                            ${r.comments ? `<div class="bg-slate-800 p-4 rounded border border-slate-700 text-sm text-white ml-2"><strong class="block mb-2 text-slate-300 text-xs uppercase">Admin Update History</strong><p class="leading-relaxed whitespace-pre-wrap">${r.comments}</p></div>` : ''}
+                            ${r.comments ? `<div class="bg-slate-800 p-4 rounded-lg border border-slate-700 text-sm text-white ml-2 mt-3"><strong class="block mb-1.5 text-slate-400 text-[10px] uppercase tracking-wider font-bold">Admin Update History</strong><p class="leading-relaxed whitespace-pre-wrap text-slate-100">${r.comments}</p></div>` : ''}
                             
                             ${adminEditBlock}
                         </div>
@@ -611,25 +745,28 @@
                 });
                 reportsHTML += `</div>`;
             } else {
-                reportsHTML = `<div class="bg-white rounded border border-slate-200 p-8 text-center mt-4"><p class="text-slate-500 italic">No incident history recorded for this student.</p></div>`;
+                reportsHTML = `<div class="bg-white rounded-lg border border-slate-200 p-8 text-center mt-4"><p class="text-slate-400 italic text-sm">No incident history recorded for this student.</p></div>`;
             }
 
             html += `
-                <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden fade-in">
-                    <div class="p-5 cursor-pointer hover:bg-slate-50 transition flex justify-between items-center" onclick="toggleDetails('${s.id}')">
+                <div class="student-card bg-white rounded-2xl shadow-sm overflow-hidden fade-in">
+                    <div class="p-4 md:p-5 cursor-pointer hover:bg-slate-50/70 transition-all flex justify-between items-center" onclick="toggleDetails('${s.id}')">
                         <div>
-                            <h3 class="text-lg font-bold text-slate-800">${s.name} <span class="bg-slate-100 text-slate-500 text-xs px-2 py-0.5 rounded ml-2 align-middle">Grade ${s.grade}</span></h3>
-                            <div class="mt-3 flex flex-wrap gap-2">${badges}</div>
+                            <h3 class="text-base font-bold text-slate-800 flex items-center gap-2">
+                                ${s.name}
+                                <span class="bg-slate-100 text-slate-500 text-[10px] font-bold px-2 py-0.5 rounded-md uppercase tracking-wider">Grade ${s.grade}</span>
+                            </h3>
+                            <div class="mt-2.5 flex flex-wrap gap-1.5">${badges}</div>
                         </div>
-                        <div class="text-slate-400">
-                            <svg id="icon-${s.id}" class="w-6 h-6 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        <div class="text-slate-300 ml-3 flex-shrink-0">
+                            <svg id="icon-${s.id}" class="w-5 h-5 transform transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path></svg>
                         </div>
                     </div>
                     
-                    <div id="details-${s.id}" class="hidden bg-slate-100 p-5 border-t border-slate-200 shadow-inner">
-                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-4 bg-white p-3 rounded border border-slate-200">
+                    <div id="details-${s.id}" class="hidden details-panel bg-slate-50/80 p-4 md:p-5 border-t border-slate-200">
+                        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3 bg-white p-3.5 rounded-xl border border-slate-200">
                             ${parentContactLink}
-                            <button onclick="fileReportForStudent('${s.id}')" class="bg-red-700 text-white text-sm font-bold px-4 py-2 rounded shadow hover:bg-red-800 transition transform active:scale-95 w-full sm:w-auto">
+                            <button onclick="fileReportForStudent('${s.id}')" class="btn-primary text-xs px-4 py-2 rounded-lg w-full sm:w-auto">
                                 + File Report for ${s.name}
                             </button>
                         </div>
@@ -639,7 +776,7 @@
             `;
         });
         
-        feed.innerHTML = visibleCount > 0 ? html : `<div class="text-slate-500 text-center py-10 bg-white rounded-xl border border-slate-200 shadow-sm">No students match your selected filters.</div>`;
+        feed.innerHTML = visibleCount > 0 ? html : `<div class="text-slate-400 text-center py-16 bg-white rounded-2xl border border-slate-200 shadow-sm"><svg class="w-8 h-8 mx-auto mb-3 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg><p class="text-sm font-medium">No students match your selected filters.</p></div>`;
     }
 
     function toggleDetails(studentId) {
@@ -728,7 +865,6 @@
         const btn = document.getElementById(`btn-update-${reportId}`);
         const newStatus = document.getElementById(`status-${reportId}`).value;
         const comments = document.getElementById(`comments-${reportId}`).value;
-        // Grab private notes (might be null if user is not admin, so optional chaining or empty string)
         const privateNotes = document.getElementById(`private-notes-${reportId}`)?.value || "";
 
         btn.disabled = true;
@@ -742,7 +878,7 @@
                 reportId: reportId,
                 newStatus: newStatus,
                 adminComments: comments,
-                privateNotes: privateNotes // Send new private note
+                privateNotes: privateNotes
             })
         }).then(() => {
             alert("Report successfully updated.");
@@ -843,7 +979,6 @@
         CURRENT_EDIT_REPORT_ID = null;
     }
 
-    // 3. Save the Edited PDF (Bulletproof "Clone & Print" Method)
    function saveEditedPDF() {
         const content = document.getElementById('editable-pdf-content');
         
